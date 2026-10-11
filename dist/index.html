@@ -62,6 +62,7 @@ summary{cursor:pointer;color:var(--pri);font-weight:600;padding:8px 0}
       <input id="q" placeholder="搜索题目 / 标签…">
       <select id="srcFilter"><option value="">全部来源</option></select>
       <button id="btnExportHtml" title="导出单文件闪卡">⤓闪卡</button>
+      <button id="btnShareHtml" title="生成并分享到其他应用">📤分享</button>
     </div>
     <div class="toolbar">
       <button id="btnExportJson">备份JSON</button>
@@ -383,21 +384,35 @@ var XJS='var i=0;function esc(s){return String(s).replace(/&/g,"&amp;").replace(
 'document.getElementById("qb").innerHTML="<div class=a>✅ "+esc(c.a)+"</div>"+(c.p?"<div class=m>📌 "+esc(c.p)+"</div>":"")}'+
 'function flip(){document.querySelector(".fc").classList.toggle("flip")}'+
 'function next(){i=(i+1)%CARDS.length;show()}function prev(){i=(i-1+CARDS.length)%CARDS.length;show()}show();';
-function exportHTML(){
- if(!cards.length){alert('暂无卡片');return}
+function buildStandaloneHTML(){
  var data=cards.map(function(c){return {q:c.question,a:c.answer,p:c.principle||'',t:(c.tag||c.subject||''),s:c.src||''}});
  var json=JSON.stringify(data).replace(/</g,'\\u003c');
- var html='<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">'+
+ return '<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">'+
   '<meta name="viewport" content="width=device-width,initial-scale=1"><title>错题闪卡</title><style>'+XCSS+'</style></head><body>'+
   '<h1>🃏 错题闪卡（'+data.length+' 张）</h1><div class="pg" id="pr"></div>'+
   '<div class="fc"><div class="fci" onclick="flip()"><div class="ff" id="qf"></div><div class="ff fb" id="qb"></div></div></div>'+
   '<div class="pg">点卡片翻面 👆</div><div class="ctl"><button onclick="prev()">◀ 上一张</button><button onclick="next()">下一张 ▶</button></div>'+
   '<script>var CARDS='+json+';'+XJS+'<\/script></body></html>';
- var b=new Blob([html],{type:'text/html;charset=utf-8'});
+}
+function exportHTML(){
+ if(!cards.length){alert('暂无卡片');return}
+ var b=new Blob([buildStandaloneHTML()],{type:'text/html;charset=utf-8'});
  var u=URL.createObjectURL(b),l=document.createElement('a');
  l.href=u;l.download='错题闪卡.html';l.click();setTimeout(function(){URL.revokeObjectURL(u)},4000);
 }
+function shareHTML(){
+ if(!cards.length){alert('暂无卡片');return}
+ var f=null;
+ try{ f=new File([buildStandaloneHTML()],'错题闪卡.html',{type:'text/html;charset=utf-8'}); }catch(e){ f=null; }
+ if(f&&navigator.canShare&&navigator.canShare({files:[f]})){
+  navigator.share({files:[f],title:'错题闪卡'}).catch(function(){});
+ }else{
+  exportHTML();
+  alert('当前环境不支持直接分享，已下载文件，请手动转发到其他应用');
+ }
+}
 document.getElementById('btnExportHtml').onclick=exportHTML;
+document.getElementById('btnShareHtml').onclick=shareHTML;
 /* ---------- 备份 / 恢复 ---------- */
 document.getElementById('btnExportJson').onclick=function(){
  var b=new Blob([JSON.stringify(cards,null,1)],{type:'application/json'});
