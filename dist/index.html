@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>错题本 · 闪卡</title>
+<style>
+:root{--bg:#f4f6fa;--card:#fff;--pri:#2563eb;--pri-d:#1d4ed8;--tx:#17203a;--mut:#6b7280;--ok:#16a34a;--warn:#d97706;--line:#e5e7eb;--r:14px}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;font-size:16px;line-height:1.6;padding-bottom:76px}
+header{position:sticky;top:0;z-index:10;background:var(--pri);color:#fff;padding:14px 16px;font-size:18px;font-weight:700;display:flex;justify-content:space-between;align-items:center}
+header small{font-weight:400;font-size:12px;opacity:.85}
+main{max-width:680px;margin:0 auto;padding:12px 12px 24px}
+nav{position:fixed;left:0;right:0;bottom:0;z-index:10;background:#fff;border-top:1px solid var(--line);display:flex;max-width:680px;margin:0 auto}
+nav button{flex:1;border:0;background:none;padding:10px 0 12px;font-size:13px;color:var(--mut);cursor:pointer}
+nav button.on{color:var(--pri);font-weight:700}
+nav button .ic{font-size:20px;display:block}
+.card{background:var(--card);border-radius:var(--r);padding:14px;margin:10px 0;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.tag{display:inline-block;background:#e8efff;color:var(--pri);font-size:12px;border-radius:20px;padding:2px 10px;margin:2px 4px 2px 0}
+.tag.pr{background:#e9f9ef;color:var(--ok)}
+.q{font-weight:600;margin:6px 0;white-space:pre-wrap}
+.a{white-space:pre-wrap;background:#f8fafc;border-left:3px solid var(--pri);padding:8px 10px;border-radius:0 8px 8px 0;margin:8px 0;font-size:15px}
+.meta{color:var(--mut);font-size:13px;margin:6px 0;white-space:pre-wrap}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+button,.btn{border:0;border-radius:10px;padding:10px 14px;font-size:15px;cursor:pointer;background:#eef2ff;color:var(--pri);min-height:44px}
+button.pri{background:var(--pri);color:#fff}
+button.dan{background:#fef2f2;color:#dc2626}
+button.okb{background:#e9f9ef;color:var(--ok)}
+button:disabled{opacity:.5}
+input,textarea,select{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px;font-size:16px;font-family:inherit;background:#fff}
+textarea{min-height:90px;resize:vertical}
+label{display:block;font-size:14px;color:var(--mut);margin:12px 0 4px}
+.toolbar{display:flex;gap:8px;margin:10px 0}
+.toolbar input{flex:1}
+/* flashcard */
+.fc-wrap{perspective:1200px;margin:16px 0}
+.fc{position:relative;min-height:300px;cursor:pointer}
+.fc-in{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .45s}
+.fc.flip .fc-in{transform:rotateY(180deg)}
+.fc-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:#fff;border-radius:18px;box-shadow:0 4px 16px rgba(0,0,0,.1);padding:22px;display:flex;flex-direction:column;justify-content:center;overflow:auto}
+.fc-back{transform:rotateY(180deg)}
+.fc-hint{text-align:center;color:var(--mut);font-size:13px;margin-top:10px}
+.fc-ctl{display:flex;gap:8px;justify-content:center;margin:14px 0;flex-wrap:wrap}
+.prog{text-align:center;color:var(--mut);font-size:14px}
+/* modal */
+.mback{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:50;display:flex;align-items:flex-end;justify-content:center}
+.mbox{background:#fff;border-radius:18px 18px 0 0;width:100%;max-width:680px;max-height:85vh;overflow:auto;padding:18px}
+.spin{text-align:center;padding:30px;color:var(--mut)}
+details{margin:8px 0}
+summary{cursor:pointer;color:var(--pri);font-weight:600;padding:8px 0}
+.badge{font-size:12px;border-radius:20px;padding:2px 10px;background:#fef3c7;color:var(--warn)}
+.badge.done{background:#e9f9ef;color:var(--ok)}
+.hide{display:none!important}
+.foot{color:var(--mut);font-size:12px;text-align:center;margin:18px 0}
+</style>
+</head>
+<body>
+<header><span>📒 错题本</span><small id="stat"></small></header>
+<main>
+  <section id="tab-list">
+    <div class="toolbar">
+      <input id="q" placeholder="搜索题目 / 标签…">
+      <button id="btnExportHtml" title="导出单文件闪卡">⤓闪卡</button>
+    </div>
+    <div class="toolbar">
+      <button id="btnExportJson">备份JSON</button>
+      <button id="btnImportJson">恢复JSON</button>
+      <input type="file" id="fileJson" accept=".json" class="hide">
+    </div>
+    <div id="list"></div>
+    <div class="foot">数据只保存在本机浏览器（localStorage），不上传服务器</div>
+  </section>
+
+  <section id="tab-fc" class="hide">
+    <div class="toolbar">
+      <select id="fcFilter"><option value="all">全部</option><option value="un">未掌握</option></select>
+      <button id="btnShuffle">🔀 乱序</button>
+    </div>
+    <div class="prog" id="fcProg"></div>
+    <div class="fc-wrap"><div class="fc" id="fc"><div class="fc-in">
+      <div class="fc-face fc-front"><div id="fcFront"></div></div>
+      <div class="fc-face fc-back"><div id="fcBack"></div></div>
+    </div></div></div>
+    <div class="fc-hint">点一下卡片翻面 👆</div>
+    <div class="fc-ctl">
+      <button id="fcPrev">◀ 上一张</button>
+      <button id="fcMaster" class="okb">✓ 掌握了</button>
+      <button id="fcNext" class="pri">下一张 ▶</button>
+    </div>
+  </section>
+
+  <section id="tab-add" class="hide">
+    <div class="card">
+      <label>学科</label>
+      <select id="fSubject"><option>数学</option><option>英语</option><option>物理</option><option>化学</option><option>其他</option></select>
+      <label>标签（如：二次根式）</label><input id="fTag" placeholder="知识点标签">
+      <label>题目 *</label><textarea id="fQuestion" placeholder="把错题题干抄/粘在这里"></textarea>
+      <label>我的答案（当时怎么错的）</label><textarea id="fMy" placeholder="选填"></textarea>
+      <label>正确答案 *</label><textarea id="fAnswer" placeholder="正确答案"></textarea>
+      <label>原理 / 公式</label><textarea id="fPrinciple" placeholder="这题考查的原理或公式"></textarea>
+      <label>错因分析</label><textarea id="fNote" placeholder="为什么错，选填"></textarea>
+      <div class="row"><button class="pri" id="btnSave" style="flex:1">保存错题</button></div>
+    </div>
+  </section>
+</main>
+<nav>
+  <button data-t="tab-list" class="on"><span class="ic">📝</span>错题</button>
+  <button data-t="tab-fc"><span class="ic">🃏</span>闪卡</button>
+  <button data-t="tab-add"><span class="ic">➕</span>添加</button>
+</nav>
+<div id="modal" class="hide"></div>
+<script>
+"use strict";
+/* ---------- 数据 ---------- */
+var LS='cuotiben.cards.v1', SEEDK='cuotiben.seeded.v1';
+function uid(){return 'c'+Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
+function load(){try{return JSON.parse(localStorage.getItem(LS))||[]}catch(e){return[]}}
+function save(){localStorage.setItem(LS,JSON.stringify(cards));stat()}
+var SEED=[
+{id:'seed-01',subject:'数学',tag:'上下界',kind:'mistake',mastered:false,createdAt:1,
+ question:'三角形底边 45cm（精确到 2 位有效数字），高 70cm（精确到 1 位有效数字），求面积的上界。',
+ myAnswer:'先用原数算 45×70÷2=1570，再 +0.5 得 1570.5',
+ answer:'1706.25 cm²（½ × 45.5 × 75）',
+ principle:'bound 先加在每个测量值上（45→45.5，70→75），再代入公式计算；不能先算再加。',
+ note:'习惯性先算后加，方向反了'},
+{id:'seed-02',subject:'数学',tag:'上下界',kind:'mistake',mastered:false,createdAt:2,
+ question:'w=aT，a=25（2 s.f.）、w=850（2 s.f.），求 T 的上界（保留 2 位小数）。',
+ myAnswer:'w 取 850.5（半格按 0.5 算）',
+ answer:'34.90（855 ÷ 24.5）',
+ principle:'850 是 2 位有效数字（精确到十位），半格=5；T 上界 = w上界 ÷ a下界。',
+ note:'有效数字位数看错，半格取错'},
+{id:'seed-03',subject:'数学',tag:'上下界',kind:'mistake',mastered:false,createdAt:3,
+ question:'m=∛(n−p)，n=8.4（1 d.p.）、p=3.1（1 d.p.），求 m 的下界（2 d.p.）。',
+ myAnswer:'∛(8.35−3.05)，p 取了下界',
+ answer:'1.73（∛(8.35−3.15)=∛5.2）',
+ principle:'差的下界 = 被减数下界 − 减数上界。',
+ note:'减数取了下界，和原册子 Q4 同样的错'},
+{id:'seed-04',subject:'数学',tag:'因式分解',kind:'mistake',mastered:false,createdAt:4,
+ question:'解方程：x²−5x+6=0（因式分解法）',
+ myAnswer:'(x−6)(x+1)=0 → x=6,−1',
+ answer:'x=2, 3（(x−2)(x−3)=0）',
+ principle:'常数项 +6、一次项 −5，两因数都是负数；分解完展开验算。',
+ note:'符号陷阱'},
+{id:'seed-05',subject:'数学',tag:'配方法',kind:'mistake',mastered:false,createdAt:5,
+ question:'用配方法解：x²−8x+3=0（2 d.p.）',
+ myAnswer:'写成 (x−8)²…',
+ answer:'x=4±√13 ≈ 7.61, 0.39',
+ principle:'配方括号里是 b 的一半：(x−4)²−16+3=0。',
+ note:'没除以 2'},
+{id:'seed-06',subject:'数学',tag:'分式方程',kind:'mistake',mastered:false,createdAt:6,
+ question:'解方程：3/(x+1)=(x−2)/2（2 d.p.）',
+ myAnswer:'最后一步把 6+2 合并成 9x',
+ answer:'x=(1±√33)/2 ≈ 3.37, −2.37（由 x²−x−8=0 得）',
+ principle:'移项合并时常数项和含 x 的项分开处理。',
+ note:'粗心合并'},
+{id:'seed-07',subject:'数学',tag:'二次根式',kind:'mistake',mastered:false,createdAt:7,
+ question:'计算：(√15−4)²⁰²¹(√15+4)²⁰²²',
+ myAnswer:'−1',
+ answer:'−√15−4',
+ principle:'先用平方差公式算 (√15−4)(√15+4)=−1，再拆成 [(…)²⁰²¹]×(√15+4)。',
+ note:'指数没处理完'},
+{id:'seed-08',subject:'数学',tag:'二次根式',kind:'mistake',mastered:false,createdAt:8,
+ question:'√a²=9，√b=4，求 a+b',
+ myAnswer:'25（只取了 a=9）',
+ answer:'25 或 7（a=±9，b=16）',
+ principle:'√a²=|a|，a 有正负两种可能，别漏解。',
+ note:'漏解'},
+{id:'seed-09',subject:'数学',tag:'二次根式',kind:'mistake',mastered:false,createdAt:9,
+ question:'化简：√(x⁴y²+x²y⁴)（x≥0,y≥0）',
+ myAnswer:'把根号拆到加法上，写成 x²y+xy²',
+ answer:'xy√(x²+y²)',
+ principle:'√ 不能拆加法！√(ab)=√a·√b 只对乘法成立；加法先提公因式 x²y²。',
+ note:'根号拆加法'},
+{id:'seed-10',subject:'数学',tag:'二次根式',kind:'mistake',mastered:false,createdAt:10,
+ question:'化简：√((a²−b²)(a−b))（a>b>0）',
+ myAnswer:'硬乘开，化成 √(a³−2ab+b³)…',
+ answer:'(a−b)√(a+b)',
+ principle:'先因式分解：(a²−b²)(a−b)=(a+b)(a−b)²，再用 √(m²n)=|m|√n。',
+ note:'没先分解'},
+{id:'seed-11',subject:'数学',tag:'二次根式',kind:'mistake',mastered:false,createdAt:11,
+ question:'△ABC 三边 a,b,c，√(a²−12a+36)+√(b−8)=0，c 是最长边，求 c 的范围',
+ myAnswer:'只求出 a=6,b=8，没求 c',
+ answer:'8≤c<14',
+ principle:'非负数和为零→每个为零；再用三角形三边关系 + c 最长列不等式。',
+ note:'做到一半'},
+{id:'seed-12',subject:'数学',tag:'复利',kind:'mistake',mastered:false,createdAt:12,
+ question:'Emma 存 £5000，年利率 3.5% 复利，4 年后本息共多少？（2 d.p.）',
+ myAnswer:'代成 4%、3 年',
+ answer:'£5737.62（5000×1.035⁴）',
+ principle:'A=P(1+r)^t；先圈出题面数字再代入。',
+ note:'抄题失误'}
+];
+var cards=load();
+if(!localStorage.getItem(SEEDK)){cards=SEED.concat(cards);save();localStorage.setItem(SEEDK,'1')}
+function stat(){
+ var n=cards.length, m=cards.filter(function(c){return c.mastered}).length;
+ document.getElementById('stat').textContent=n?('已掌握 '+m+'/'+n):'';
+}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+</script>
+<script>
+"use strict";
+/* ---------- tab 切换 ---------- */
+document.querySelectorAll('nav button').forEach(function(b){
+ b.onclick=function(){
+  document.querySelectorAll('nav button').forEach(function(x){x.classList.remove('on')});
+  b.classList.add('on');
+  ['tab-list','tab-fc','tab-add'].forEach(function(t){document.getElementById(t).classList.add('hide')});
+  document.getElementById(b.dataset.t).classList.remove('hide');
+  if(b.dataset.t==='tab-fc')fcReset();
+ };
+});
+/* ---------- 错题列表 ---------- */
+function renderList(){
+ var kw=document.getElementById('q').value.trim();
+ var box=document.getElementById('list');box.innerHTML='';
+ var list=cards.filter(function(c){
+  return !kw||(c.question+c.tag+c.subject).indexOf(kw)>=0;
+ });
+ if(!list.length){box.innerHTML='<div class="card" style="color:var(--mut)">暂无错题，去「添加」录入第一道吧 📝</div>';return}
+ list.forEach(function(c){
+  var d=document.createElement('div');d.className='card';
+  d.innerHTML=
+   '<div><span class="tag">'+esc(c.subject)+'</span>'+(c.tag?'<span class="tag">'+esc(c.tag)+'</span>':'')+
+   (c.kind==='practice'?'<span class="tag pr">AI练习</span>':'')+
+   ' <span class="badge '+(c.mastered?'done':'')+'">'+(c.mastered?'已掌握':'未掌握')+'</span></div>'+
+   '<div class="q">'+esc(c.question)+'</div>'+
+   '<div class="row">'+
+    '<button data-a="d">详情</button>'+
+    '<button data-a="ai">✨ AI出类似题</button>'+
+    '<button data-a="m" class="'+(c.mastered?'':'okb')+'">'+(c.mastered?'取消掌握':'掌握了')+'</button>'+
+    '<button data-a="x" class="dan">删除</button>'+
+   '</div>'+
+   '<div class="det hide">'+
+    (c.myAnswer?'<div class="meta">我的答案：'+esc(c.myAnswer)+'</div>':'')+
+    '<div class="a">✅ 答案：'+esc(c.answer)+'</div>'+
+    (c.principle?'<div class="meta">📌 原理：'+esc(c.principle)+'</div>':'')+
+    (c.note?'<div class="meta">⚠️ 错因：'+esc(c.note)+'</div>':'')+
+   '</div>';
+  d.querySelector('[data-a=d]').onclick=function(){d.querySelector('.det').classList.toggle('hide')};
+  d.querySelector('[data-a=x]').onclick=function(){if(confirm('删除这道题？')){cards=cards.filter(function(x){return x.id!==c.id});save();renderList()}};
+  d.querySelector('[data-a=m]').onclick=function(){c.mastered=!c.mastered;save();renderList()};
+  d.querySelector('[data-a=ai]').onclick=function(){aiSimilar(c)};
+  box.appendChild(d);
+ });
+}
+document.getElementById('q').oninput=renderList;
+/* ---------- 添加 ---------- */
+document.getElementById('btnSave').onclick=function(){
+ var q=document.getElementById('fQuestion').value.trim(),a=document.getElementById('fAnswer').value.trim();
+ if(!q||!a){alert('题目和正确答案必填');return}
+ cards.unshift({id:uid(),subject:document.getElementById('fSubject').value,
+  tag:document.getElementById('fTag').value.trim(),question:q,
+  myAnswer:document.getElementById('fMy').value.trim(),answer:a,
+  principle:document.getElementById('fPrinciple').value.trim(),
+  note:document.getElementById('fNote').value.trim(),kind:'mistake',mastered:false,createdAt:Date.now()});
+ save();
+ ['fTag','fQuestion','fMy','fAnswer','fPrinciple','fNote'].forEach(function(i){document.getElementById(i).value=''});
+ renderList();alert('已保存 ✅');
+ document.querySelector('nav button[data-t=tab-list]').click();
+};
+</script>
+<script>
+"use strict";
+/* ---------- 闪卡 ---------- */
+var fcOrder=[],fcIdx=0,fcFilter='all';
+function fcPool(){
+ var p=cards.filter(function(c){return fcFilter==='all'||!c.mastered});
+ return p.map(function(c){return c.id});
+}
+function fcReset(){fcOrder=fcPool();fcIdx=0;fcShow()}
+document.getElementById('fcFilter').onchange=function(){fcFilter=this.value;fcReset()};
+document.getElementById('btnShuffle').onclick=function(){
+ for(var i=fcOrder.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=fcOrder[i];fcOrder[i]=fcOrder[j];fcOrder[j]=t}
+ fcIdx=0;fcShow();
+};
+function fcCard(){var id=fcOrder[fcIdx];return cards.find(function(c){return c.id===id})}
+function fcShow(){
+ var el=document.getElementById('fc');el.classList.remove('flip');
+ var c=fcCard();
+ document.getElementById('fcProg').textContent=fcOrder.length?((fcIdx+1)+' / '+fcOrder.length):'';
+ if(!c){document.getElementById('fcFront').innerHTML='<div style="color:var(--mut)">没有卡片'+(fcFilter==='un'?'（未掌握的已学完 🎉）':'')+'</div>';document.getElementById('fcBack').innerHTML='';return}
+ document.getElementById('fcFront').innerHTML='<div class="q" style="font-size:18px">'+esc(c.question)+'</div><div style="margin-top:8px"><span class="tag">'+esc(c.subject)+'</span>'+(c.tag?'<span class="tag">'+esc(c.tag)+'</span>':'')+'</div>';
+ document.getElementById('fcBack').innerHTML='<div class="a">✅ '+esc(c.answer)+'</div>'+(c.principle?'<div class="meta">📌 '+esc(c.principle)+'</div>':'');
+ var mb=document.getElementById('fcMaster');mb.textContent=c.mastered?'取消掌握':'✓ 掌握了';
+}
+document.getElementById('fc').onclick=function(){this.classList.toggle('flip')};
+document.getElementById('fcPrev').onclick=function(){if(fcOrder.length){fcIdx=(fcIdx-1+fcOrder.length)%fcOrder.length;fcShow()}};
+document.getElementById('fcNext').onclick=function(){if(fcOrder.length){fcIdx=(fcIdx+1)%fcOrder.length;fcShow()}};
+document.getElementById('fcMaster').onclick=function(){var c=fcCard();if(!c)return;c.mastered=!c.mastered;save();
+ if(fcFilter==='un'&&c.mastered){fcOrder=fcPool();if(fcIdx>=fcOrder.length)fcIdx=0}fcShow();renderList()};
+/* ---------- AI 出类似题 ---------- */
+var modal=document.getElementById('modal');
+function mShow(html){modal.innerHTML='<div class="mback" onclick="if(event.target===this)mHide()"><div class="mbox">'+html+'</div></div>';modal.classList.remove('hide')}
+function mHide(){modal.classList.add('hide');modal.innerHTML=''}
+var lastAI=null,lastCard=null;
+function aiSimilar(card){
+ lastCard=card;
+ mShow('<h3 style="margin-top:0">✨ AI 正在出类似题…</h3><div class="spin">⏳ 请稍候（约10秒）</div><div class="row"><button onclick="mHide()" style="flex:1">取消</button></div>');
+ fetch('/api/similar',{method:'POST',headers:{'Content-Type':'application/json'},
+  body:JSON.stringify({question:card.question,answer:card.answer,principle:card.principle,subject:card.subject})})
+ .then(function(r){return r.json().then(function(j){return {ok:r.ok,j:j}})})
+ .then(function(x){
+  if(!x.ok)throw new Error((x.j&&x.j.error)||'请求失败');
+  var j=x.j;
+  if(j.raw){lastAI=null;
+   mShow('<h3 style="margin-top:0">AI 返回</h3><div class="a">'+esc(j.raw)+'</div><div class="row"><button onclick="mHide()" style="flex:1">关闭</button></div>');return}
+  lastAI=j;
+  mShow('<h3 style="margin-top:0">✨ 类似题</h3>'+
+   '<div class="q">'+esc(j.question)+'</div>'+
+   (j.hint?'<div class="meta">💡 提示：'+esc(j.hint)+'</div>':'')+
+   '<details><summary>查看答案</summary><div class="a">'+esc(j.answer)+'</div></details>'+
+   '<div class="row"><button class="pri" onclick="aiAdd()" style="flex:1">加入练习本</button><button onclick="aiAgain()">再出一题</button><button onclick="mHide()">关闭</button></div>');
+ }).catch(function(e){
+  mShow('<h3 style="margin-top:0">出错了</h3><div class="a">'+esc(e.message)+'</div><div class="row"><button onclick="mHide()" style="flex:1">关闭</button></div>');
+ });
+}
+function aiAgain(){if(lastCard)aiSimilar(lastCard)}
+function aiAdd(){
+ if(!lastAI||!lastCard)return;
+ cards.unshift({id:uid(),subject:lastCard.subject,tag:lastCard.tag,question:lastAI.question,
+  myAnswer:'',answer:lastAI.answer,principle:lastAI.hint||'',note:'AI 生成的类似题',kind:'practice',mastered:false,createdAt:Date.now()});
+ save();renderList();mHide();alert('已加入练习本 ✅');
+ document.querySelector('nav button[data-t=tab-list]').click();
+}
+/* ---------- 导出单文件闪卡 HTML ---------- */
+var XCSS='*{box-sizing:border-box}body{margin:0;background:#f4f6fa;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;padding:16px}'+
+'h1{font-size:20px;text-align:center}.fc{perspective:1200px;margin:20px auto;max-width:560px}.fci{position:relative;min-height:280px;transform-style:preserve-3d;transition:transform .45s;cursor:pointer}'+
+'.flip .fci{transform:rotateY(180deg)}.ff{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:#fff;border-radius:16px;box-shadow:0 4px 14px rgba(0,0,0,.12);padding:24px;display:flex;flex-direction:column;justify-content:center}'+
+'.fb{transform:rotateY(180deg)}.q{font-weight:700;font-size:18px;white-space:pre-wrap}.a{background:#f0f6ff;border-left:3px solid #2563eb;padding:10px;border-radius:0 8px 8px 0;margin-top:12px;white-space:pre-wrap}'+
+'.m{color:#666;font-size:14px;margin-top:8px;white-space:pre-wrap}.ctl{display:flex;gap:8px;justify-content:center;margin:12px}'+
+'button{border:0;border-radius:10px;padding:12px 18px;font-size:16px;background:#2563eb;color:#fff}.pg{text-align:center;color:#666}';
+var XJS='var i=0;function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;")}'+
+'function show(){document.querySelector(".fc").classList.remove("flip");var c=CARDS[i];'+
+'document.getElementById("pr").textContent=(i+1)+" / "+CARDS.length;'+
+'document.getElementById("qf").innerHTML="<div class=q>"+esc(c.q)+"</div>"+(c.t?"<div class=m>🏷 "+esc(c.t)+"</div>":"");'+
+'document.getElementById("qb").innerHTML="<div class=a>✅ "+esc(c.a)+"</div>"+(c.p?"<div class=m>📌 "+esc(c.p)+"</div>":"")}'+
+'function flip(){document.querySelector(".fc").classList.toggle("flip")}'+
+'function next(){i=(i+1)%CARDS.length;show()}function prev(){i=(i-1+CARDS.length)%CARDS.length;show()}show();';
+function exportHTML(){
+ if(!cards.length){alert('暂无卡片');return}
+ var data=cards.map(function(c){return {q:c.question,a:c.answer,p:c.principle||'',t:(c.tag||c.subject||'')}});
+ var json=JSON.stringify(data).replace(/</g,'\\u003c');
+ var html='<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">'+
+  '<meta name="viewport" content="width=device-width,initial-scale=1"><title>错题闪卡</title><style>'+XCSS+'</style></head><body>'+
+  '<h1>🃏 错题闪卡（'+data.length+' 张）</h1><div class="pg" id="pr"></div>'+
+  '<div class="fc"><div class="fci" onclick="flip()"><div class="ff" id="qf"></div><div class="ff fb" id="qb"></div></div></div>'+
+  '<div class="pg">点卡片翻面 👆</div><div class="ctl"><button onclick="prev()">◀ 上一张</button><button onclick="next()">下一张 ▶</button></div>'+
+  '<script>var CARDS='+json+';'+XJS+'<\/script></body></html>';
+ var b=new Blob([html],{type:'text/html;charset=utf-8'});
+ var u=URL.createObjectURL(b),l=document.createElement('a');
+ l.href=u;l.download='错题闪卡.html';l.click();setTimeout(function(){URL.revokeObjectURL(u)},4000);
+}
+document.getElementById('btnExportHtml').onclick=exportHTML;
+/* ---------- 备份 / 恢复 ---------- */
+document.getElementById('btnExportJson').onclick=function(){
+ var b=new Blob([JSON.stringify(cards,null,1)],{type:'application/json'});
+ var u=URL.createObjectURL(b),l=document.createElement('a');
+ l.href=u;l.download='错题本备份.json';l.click();setTimeout(function(){URL.revokeObjectURL(u)},4000);
+};
+document.getElementById('btnImportJson').onclick=function(){document.getElementById('fileJson').click()};
+document.getElementById('fileJson').onchange=function(e){
+ var f=e.target.files[0];if(!f)return;
+ var r=new FileReader();
+ r.onload=function(){try{var j=JSON.parse(r.result);if(!Array.isArray(j))throw 0;cards=j;save();renderList();alert('已恢复 '+j.length+' 道题 ✅')}catch(x){alert('文件格式不对')}};
+ r.readAsText(f);e.target.value='';
+};
+/* ---------- init ---------- */
+stat();renderList();
+</script>
+</body>
+</html>
