@@ -1,5 +1,5 @@
 // 错题本 Worker：静态资源托管 + Workers AI 生成类似题
-var MODEL = '@cf/zai-org/glm-4.7-flash';
+var MODEL = '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
 
 export default {
   async fetch(req, env) {
@@ -19,10 +19,10 @@ export default {
       var s = String(b.subject || '数学').slice(0, 20);
       if (!q) return Response.json({ error: '题目不能为空' }, { status: 400 });
 
-      var sys = '你是初中数学老师，擅长针对错题出同类练习题。严格只返回 JSON，不要输出任何解释文字。';
+      var sys = '你是初中数学老师，擅长针对错题出同类练习题。严格只返回 JSON，不要输出任何解释文字。题目中的数字尽量取整齐、好算；出题后必须逐步验算答案里的每一个数字，数字算错比不出题更有害。';
       var user =
         '根据下面这道错题，出 1 道同类型、同难度、同考点的练习题（换数字和情境，不要重复原题）。\n' +
-        '只返回 JSON：{"question":"题干","answer":"答案","hint":"一句话解题关键提示"}\n\n' +
+        '只返回 JSON：{"question":"题干","answer":"答案（含关键计算步骤，如 x∈[4.45,4.55)，上界=3×4.55=13.65）","hint":"一句话解题关键提示"}\n\n' +
         '学科：' + s + '\n错题题干：' + q + '\n正确答案：' + a + '\n考查原理：' + p;
 
       try {
@@ -33,7 +33,14 @@ export default {
           ],
           max_tokens: 600
         });
-        var txt = String(out.response || '').trim()
+        var txt = '';
+        if (out) {
+          if (typeof out.response === 'string') txt = out.response;
+          else if (out.choices && out.choices[0] && out.choices[0].message) txt = out.choices[0].message.content || '';
+          else if (typeof out.result === 'string') txt = out.result;
+          else if (typeof out === 'string') txt = out;
+        }
+        txt = String(txt).trim()
           .replace(/^```json\s*/i, '').replace(/^```\s*/, '').replace(/\s*```$/, '');
         var j;
         try { j = JSON.parse(txt); }
