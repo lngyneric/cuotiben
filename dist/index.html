@@ -310,6 +310,7 @@ function aiSimilar(card){
    '<div class="q">'+esc(j.question)+'</div>'+
    (j.hint?'<div class="meta">💡 提示：'+esc(j.hint)+'</div>':'')+
    '<details><summary>查看答案</summary><div class="a">'+esc(j.answer)+'</div></details>'+
+   '<div class="meta" style="opacity:.65">⚠️ AI 生成的题目和答案仅供参考，加入练习本前请复核</div>'+
    '<div class="row"><button class="pri" onclick="aiAdd()" style="flex:1">加入练习本</button><button onclick="aiAgain()">再出一题</button><button onclick="mHide()">关闭</button></div>');
  }).catch(function(e){
   mShow('<h3 style="margin-top:0">出错了</h3><div class="a">'+esc(e.message)+'</div><div class="row"><button onclick="mHide()" style="flex:1">关闭</button></div>');
