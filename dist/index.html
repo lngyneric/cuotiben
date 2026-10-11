@@ -60,6 +60,7 @@ summary{cursor:pointer;color:var(--pri);font-weight:600;padding:8px 0}
   <section id="tab-list">
     <div class="toolbar">
       <input id="q" placeholder="搜索题目 / 标签…">
+      <select id="srcFilter"><option value="">全部来源</option></select>
       <button id="btnExportHtml" title="导出单文件闪卡">⤓闪卡</button>
     </div>
     <div class="toolbar">
@@ -74,6 +75,7 @@ summary{cursor:pointer;color:var(--pri);font-weight:600;padding:8px 0}
   <section id="tab-fc" class="hide">
     <div class="toolbar">
       <select id="fcFilter"><option value="all">全部</option><option value="un">未掌握</option></select>
+      <select id="fcSrc"><option value="">全部来源</option></select>
       <button id="btnShuffle">🔀 乱序</button>
     </div>
     <div class="prog" id="fcProg"></div>
@@ -93,6 +95,8 @@ summary{cursor:pointer;color:var(--pri);font-weight:600;padding:8px 0}
     <div class="card">
       <label>学科</label>
       <select id="fSubject"><option>数学</option><option>英语</option><option>物理</option><option>化学</option><option>其他</option></select>
+      <label>来源</label>
+      <select id="fSrc"><option>igmath</option><option>中文数学</option></select>
       <label>标签（如：二次根式）</label><input id="fTag" placeholder="知识点标签">
       <label>题目 *</label><textarea id="fQuestion" placeholder="把错题题干抄/粘在这里"></textarea>
       <label>我的答案（当时怎么错的）</label><textarea id="fMy" placeholder="选填"></textarea>
@@ -112,86 +116,116 @@ summary{cursor:pointer;color:var(--pri);font-weight:600;padding:8px 0}
 <script>
 "use strict";
 /* ---------- 数据 ---------- */
-var LS='cuotiben.cards.v1', SEEDK='cuotiben.seeded.v1';
+var LS='cuotiben.cards.v1', SEEDK='cuotiben.seeded.v2';
 function uid(){return 'c'+Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
 function load(){try{return JSON.parse(localStorage.getItem(LS))||[]}catch(e){return[]}}
 function save(){localStorage.setItem(LS,JSON.stringify(cards));stat()}
 var SEED=[
-{id:'seed-01',subject:'数学',tag:'上下界',kind:'mistake',mastered:false,createdAt:1,
- question:'三角形底边 45cm（精确到 2 位有效数字），高 70cm（精确到 1 位有效数字），求面积的上界。',
- myAnswer:'先用原数算 45×70÷2=1570，再 +0.5 得 1570.5',
- answer:'1706.25 cm²（½ × 45.5 × 75）',
- principle:'bound 先加在每个测量值上（45→45.5，70→75），再代入公式计算；不能先算再加。',
- note:'习惯性先算后加，方向反了'},
-{id:'seed-02',subject:'数学',tag:'上下界',kind:'mistake',mastered:false,createdAt:2,
- question:'w=aT，a=25（2 s.f.）、w=850（2 s.f.），求 T 的上界（保留 2 位小数）。',
- myAnswer:'w 取 850.5（半格按 0.5 算）',
- answer:'34.90（855 ÷ 24.5）',
- principle:'850 是 2 位有效数字（精确到十位），半格=5；T 上界 = w上界 ÷ a下界。',
- note:'有效数字位数看错，半格取错'},
-{id:'seed-03',subject:'数学',tag:'上下界',kind:'mistake',mastered:false,createdAt:3,
- question:'m=∛(n−p)，n=8.4（1 d.p.）、p=3.1（1 d.p.），求 m 的下界（2 d.p.）。',
- myAnswer:'∛(8.35−3.05)，p 取了下界',
- answer:'1.73（∛(8.35−3.15)=∛5.2）',
- principle:'差的下界 = 被减数下界 − 减数上界。',
- note:'减数取了下界，和原册子 Q4 同样的错'},
-{id:'seed-04',subject:'数学',tag:'因式分解',kind:'mistake',mastered:false,createdAt:4,
- question:'解方程：x²−5x+6=0（因式分解法）',
- myAnswer:'(x−6)(x+1)=0 → x=6,−1',
- answer:'x=2, 3（(x−2)(x−3)=0）',
- principle:'常数项 +6、一次项 −5，两因数都是负数；分解完展开验算。',
- note:'符号陷阱'},
-{id:'seed-05',subject:'数学',tag:'配方法',kind:'mistake',mastered:false,createdAt:5,
- question:'用配方法解：x²−8x+3=0（2 d.p.）',
- myAnswer:'写成 (x−8)²…',
- answer:'x=4±√13 ≈ 7.61, 0.39',
- principle:'配方括号里是 b 的一半：(x−4)²−16+3=0。',
- note:'没除以 2'},
-{id:'seed-06',subject:'数学',tag:'分式方程',kind:'mistake',mastered:false,createdAt:6,
- question:'解方程：3/(x+1)=(x−2)/2（2 d.p.）',
- myAnswer:'最后一步把 6+2 合并成 9x',
- answer:'x=(1±√33)/2 ≈ 3.37, −2.37（由 x²−x−8=0 得）',
- principle:'移项合并时常数项和含 x 的项分开处理。',
- note:'粗心合并'},
-{id:'seed-07',subject:'数学',tag:'二次根式',kind:'mistake',mastered:false,createdAt:7,
+{id:'ig-01',src:'igmath',subject:'Math',tag:'Upper/Lower Bound',kind:'mistake',mastered:false,createdAt:1,
+ question:'Q2 (Upper/Lower Bound): The base of a triangle is 45 cm, correct to 2 significant figures. The height of the triangle is 70 cm, correct to 1 significant figure. Calculate the upper bound for the area of the triangle.',
+ myAnswer:'Calculated with the given numbers first: 45 × 70 ÷ 2 = 1570, then added 0.5 to get 1570.5',
+ answer:'1706.25 cm²  (½ × 45.5 × 75)',
+ principle:'Apply the bounds to each measurement BEFORE substituting into the formula. Never calculate first and add the bound afterwards.',
+ note:'Bound applied in the wrong order: calculated first, then added.'},
+{id:'ig-02',src:'igmath',subject:'Math',tag:'Upper/Lower Bound',kind:'mistake',mastered:false,createdAt:2,
+ question:'Q3: w = aT. Given a = 25 correct to 2 significant figures and w = 850 correct to 2 significant figures, calculate the upper bound for T (leave your answer in 2 d.p.).',
+ myAnswer:'Took the upper bound of w as 850.5 (treated the half-unit as 0.5)',
+ answer:'34.90  (855 ÷ 24.5)',
+ principle:'850 is correct to 2 s.f., i.e. to the nearest 10, so the half-unit is 5. Upper bound of a quotient = upper bound of numerator ÷ lower bound of denominator.',
+ note:'Misread the precision (significant figures) and took the wrong half-unit.'},
+{id:'ig-03',src:'igmath',subject:'Math',tag:'Upper/Lower Bound',kind:'mistake',mastered:false,createdAt:3,
+ question:'Q4: m = ∛(n − p). Given n = 8.4 correct to 1 decimal place and p = 3.1 correct to 1 decimal place, calculate the lower bound for m (2 d.p.).',
+ myAnswer:'∛(8.35 − 3.05): used the lower bound of p',
+ answer:'1.73  (∛(8.35 − 3.15) = ∛5.2)',
+ principle:'Lower bound of a difference = lower bound of the minuend − upper bound of the subtrahend.',
+ note:'Used the lower bound of the number being subtracted; it must be the upper bound.'},
+{id:'ig-04',src:'igmath',subject:'Math',tag:'Compound Interest',kind:'mistake',mastered:false,createdAt:4,
+ question:'Q1 (Compound Interest): Emma invests £5000 for 4 years in a savings account. She gets 3.5% per annum compound interest. How much money will she have at the end of 4 years? (2 d.p.)',
+ myAnswer:'Used 4% for 3 years: 5000 × 1.04³',
+ answer:'£5737.62  (5000 × 1.035⁴)',
+ principle:'A = P(1 + r)ⁿ. Circle the numbers in the question before substituting.',
+ note:'Miscopied the numbers from the question (3.5% → 4%, 4 years → 3 years).'},
+{id:'ig-05',src:'igmath',subject:'Math',tag:'Factorization',kind:'mistake',mastered:false,createdAt:5,
+ question:'Q1a-2 (Factorization): Solve x² − 5x + 6 = 0 by factorization.',
+ myAnswer:'(x − 6)(x + 1) = 0, so x = 6 or x = −1',
+ answer:'x = 2 or x = 3  ((x − 2)(x − 3) = 0)',
+ principle:'Constant term +6 and x-coefficient −5: both factors must be negative. Expand to check your factorization.',
+ note:'Sign trap in factorization.'},
+{id:'ig-06',src:'igmath',subject:'Math',tag:'Completing the Square',kind:'mistake',mastered:false,createdAt:6,
+ question:'Q1b-1 (Completing the Square): Solve x² − 8x + 3 = 0 by completing the square (2 d.p. if needed).',
+ myAnswer:'Wrote (x − 8)² …',
+ answer:'x = 4 ± √13 ≈ 7.61 or 0.39  ((x − 4)² − 16 + 3 = 0)',
+ principle:'Halve the x-coefficient inside the bracket: (x − 4)², not (x − 8)².',
+ note:'Forgot to halve b when completing the square.'},
+{id:'ig-07',src:'igmath',subject:'Math',tag:'Solving Equations',kind:'mistake',mastered:false,createdAt:7,
+ question:'Q3-2: Solve 3/(x + 1) = (x − 2)/2 (2 d.p. if needed).',
+ myAnswer:'Merged 6 + 2 into 9x in the last step',
+ answer:'x = (1 ± √33)/2 ≈ 3.37 or −2.37  (from x² − x − 8 = 0)',
+ principle:'When transposing, keep constant terms and x-terms separate; never merge unlike terms.',
+ note:'Careless merging of unlike terms.'},
+{id:'ig-08',src:'igmath',subject:'Math',tag:'Solving Equations',kind:'mistake',mastered:false,createdAt:8,
+ question:'Q3-1: Solve (x + 2)/3 = (3x − 1)/x (2 d.p. if needed).',
+ myAnswer:'Set up correctly: x(x + 2) = 3(3x − 1), then stopped',
+ answer:'x = (7 ± √37)/2 ≈ 6.54 or 0.46  (from x² − 7x + 3 = 0)',
+ principle:'Always carry the algebra through to the final solutions; setting up is only half the question.',
+ note:'Correct setup but did not finish solving.'},
+{id:'ig-09',src:'igmath',subject:'Math',tag:'Quadratic Formula',kind:'mistake',mastered:false,createdAt:9,
+ question:'Q4: A rectangular garden has length 3x and width 2x metres. This leads to the equation 6x² + 7x − 18 = 0. Solve it using the quadratic formula (2 d.p.).',
+ myAnswer:'Quadratic formula applied with the wrong denominator and a wrong value inside the square root',
+ answer:'x = (−7 + √481)/12 ≈ 1.24  (x = [−7 ± √(49 + 432)]/12; take the positive root)',
+ principle:'x = [−b ± √(b² − 4ac)] / 2a. The denominator is 2a, and the discriminant is b² − 4ac: compute both carefully.',
+ note:'Denominator and discriminant miscalculated in the formula.'},
+{id:'ig-10',src:'igmath',subject:'Math',tag:'Quadratic Graphs',kind:'mistake',mastered:false,createdAt:10,
+ question:'Q1 (Graphs): Sketch the graph of y = x² + 2x − 8 by finding the intercepts, the turning point and the line of symmetry.',
+ myAnswer:'Turning point found incorrectly (completing-the-square slip)',
+ answer:'y = (x + 1)² − 9: turning point (−1, −9), line of symmetry x = −1; x-intercepts (2, 0) and (−4, 0); y-intercept (0, −8)',
+ principle:'Complete the square: x² + 2x − 8 = (x + 1)² − 9, so the vertex is (−1, −9).',
+ note:'Completing-the-square slip when finding the vertex.'},
+{id:'ig-11',src:'igmath',subject:'Math',tag:'Cubic Graphs',kind:'mistake',mastered:false,createdAt:11,
+ question:'Q5b (Cubic Graphs): Given y = 3(x − 1)²(x + 2). Explain how the multiplicity of each x-intercept affects the behavior of the graph at that point.',
+ myAnswer:'Explanation of multiplicity was incorrect/incomplete',
+ answer:'At x = 1 (multiplicity 2, even) the graph touches the x-axis and turns around; at x = −2 (multiplicity 1, odd) the graph crosses the x-axis.',
+ principle:'Even multiplicity: touch and turn. Odd multiplicity: cross straight through.',
+ note:'Mixed up the effect of even vs odd multiplicity.'},
+{id:'ig-12',src:'igmath',subject:'Math',tag:'Cubic Graphs',kind:'mistake',mastered:false,createdAt:12,
+ question:'Q6a: A cubic function y = a(x − 1)(x + 3)² passes through the point (0, −18). Find the value of a.',
+ myAnswer:'Incorrect value found for a (substitution/arithmetic slip)',
+ answer:'a = 2  (−18 = a(−1)(3)² gives −18 = −9a)',
+ principle:'Substitute the known point (x = 0, y = −18) into the equation and solve for a.',
+ note:'Arithmetic slip when substituting into the factored form.'},
+{id:'cn-01',src:'中文数学',subject:'数学',tag:'二次根式',kind:'mistake',mastered:false,createdAt:13,
  question:'计算：(√15−4)²⁰²¹(√15+4)²⁰²²',
  myAnswer:'−1',
  answer:'−√15−4',
  principle:'先用平方差公式算 (√15−4)(√15+4)=−1，再拆成 [(…)²⁰²¹]×(√15+4)。',
  note:'指数没处理完'},
-{id:'seed-08',subject:'数学',tag:'二次根式',kind:'mistake',mastered:false,createdAt:8,
+{id:'cn-02',src:'中文数学',subject:'数学',tag:'二次根式',kind:'mistake',mastered:false,createdAt:14,
  question:'√a²=9，√b=4，求 a+b',
  myAnswer:'25（只取了 a=9）',
  answer:'25 或 7（a=±9，b=16）',
  principle:'√a²=|a|，a 有正负两种可能，别漏解。',
  note:'漏解'},
-{id:'seed-09',subject:'数学',tag:'二次根式',kind:'mistake',mastered:false,createdAt:9,
+{id:'cn-03',src:'中文数学',subject:'数学',tag:'二次根式',kind:'mistake',mastered:false,createdAt:15,
  question:'化简：√(x⁴y²+x²y⁴)（x≥0,y≥0）',
  myAnswer:'把根号拆到加法上，写成 x²y+xy²',
  answer:'xy√(x²+y²)',
  principle:'√ 不能拆加法！√(ab)=√a·√b 只对乘法成立；加法先提公因式 x²y²。',
  note:'根号拆加法'},
-{id:'seed-10',subject:'数学',tag:'二次根式',kind:'mistake',mastered:false,createdAt:10,
+{id:'cn-04',src:'中文数学',subject:'数学',tag:'二次根式',kind:'mistake',mastered:false,createdAt:16,
  question:'化简：√((a²−b²)(a−b))（a>b>0）',
  myAnswer:'硬乘开，化成 √(a³−2ab+b³)…',
  answer:'(a−b)√(a+b)',
  principle:'先因式分解：(a²−b²)(a−b)=(a+b)(a−b)²，再用 √(m²n)=|m|√n。',
  note:'没先分解'},
-{id:'seed-11',subject:'数学',tag:'二次根式',kind:'mistake',mastered:false,createdAt:11,
+{id:'cn-05',src:'中文数学',subject:'数学',tag:'二次根式',kind:'mistake',mastered:false,createdAt:17,
  question:'△ABC 三边 a,b,c，√(a²−12a+36)+√(b−8)=0，c 是最长边，求 c 的范围',
  myAnswer:'只求出 a=6,b=8，没求 c',
  answer:'8≤c<14',
  principle:'非负数和为零→每个为零；再用三角形三边关系 + c 最长列不等式。',
  note:'做到一半'},
-{id:'seed-12',subject:'数学',tag:'复利',kind:'mistake',mastered:false,createdAt:12,
- question:'Emma 存 £5000，年利率 3.5% 复利，4 年后本息共多少？（2 d.p.）',
- myAnswer:'代成 4%、3 年',
- answer:'£5737.62（5000×1.035⁴）',
- principle:'A=P(1+r)^t；先圈出题面数字再代入。',
- note:'抄题失误'}
 ];
 var cards=load();
-if(!localStorage.getItem(SEEDK)){cards=SEED.concat(cards);save();localStorage.setItem(SEEDK,'1')}
+if(!localStorage.getItem(SEEDK)){cards=cards.filter(function(c){return !/^(seed-|ig-|cn-)/.test(c.id||'')});cards=SEED.concat(cards);save();localStorage.setItem(SEEDK,'1')}
 function stat(){
  var n=cards.length, m=cards.filter(function(c){return c.mastered}).length;
  document.getElementById('stat').textContent=n?('已掌握 '+m+'/'+n):'';
@@ -213,15 +247,19 @@ document.querySelectorAll('nav button').forEach(function(b){
 /* ---------- 错题列表 ---------- */
 function renderList(){
  var kw=document.getElementById('q').value.trim();
+ var sf=document.getElementById('srcFilter'),cur=sf.value,srcs=[];
+ cards.forEach(function(c){if(c.src&&srcs.indexOf(c.src)<0)srcs.push(c.src)});
+ sf.innerHTML='<option value="">全部来源</option>'+srcs.map(function(s){return '<option value="'+esc(s)+'"'+(s===cur?' selected':'')+'>'+esc(s)+'</option>'}).join('');
+ var f=sf.value;
  var box=document.getElementById('list');box.innerHTML='';
  var list=cards.filter(function(c){
-  return !kw||(c.question+c.tag+c.subject).indexOf(kw)>=0;
+  return (!f||c.src===f)&&(!kw||(c.question+c.tag+c.subject+(c.src||'')).indexOf(kw)>=0);
  });
  if(!list.length){box.innerHTML='<div class="card" style="color:var(--mut)">暂无错题，去「添加」录入第一道吧 📝</div>';return}
  list.forEach(function(c){
   var d=document.createElement('div');d.className='card';
   d.innerHTML=
-   '<div><span class="tag">'+esc(c.subject)+'</span>'+(c.tag?'<span class="tag">'+esc(c.tag)+'</span>':'')+
+   '<div>'+(c.src?'<span class="tag">'+esc(c.src)+'</span>':'')+'<span class="tag">'+esc(c.subject)+'</span>'+(c.tag?'<span class="tag">'+esc(c.tag)+'</span>':'')+
    (c.kind==='practice'?'<span class="tag pr">AI练习</span>':'')+
    ' <span class="badge '+(c.mastered?'done':'')+'">'+(c.mastered?'已掌握':'未掌握')+'</span></div>'+
    '<div class="q">'+esc(c.question)+'</div>'+
@@ -245,12 +283,13 @@ function renderList(){
  });
 }
 document.getElementById('q').oninput=renderList;
+document.getElementById('srcFilter').onchange=renderList;
 /* ---------- 添加 ---------- */
 document.getElementById('btnSave').onclick=function(){
  var q=document.getElementById('fQuestion').value.trim(),a=document.getElementById('fAnswer').value.trim();
  if(!q||!a){alert('题目和正确答案必填');return}
  cards.unshift({id:uid(),subject:document.getElementById('fSubject').value,
-  tag:document.getElementById('fTag').value.trim(),question:q,
+  src:document.getElementById('fSrc').value,tag:document.getElementById('fTag').value.trim(),question:q,
   myAnswer:document.getElementById('fMy').value.trim(),answer:a,
   principle:document.getElementById('fPrinciple').value.trim(),
   note:document.getElementById('fNote').value.trim(),kind:'mistake',mastered:false,createdAt:Date.now()});
@@ -263,13 +302,19 @@ document.getElementById('btnSave').onclick=function(){
 <script>
 "use strict";
 /* ---------- 闪卡 ---------- */
-var fcOrder=[],fcIdx=0,fcFilter='all';
+var fcOrder=[],fcIdx=0,fcFilter='all',fcSrc='';
 function fcPool(){
- var p=cards.filter(function(c){return fcFilter==='all'||!c.mastered});
+ var p=cards.filter(function(c){return (fcFilter==='all'||!c.mastered)&&(!fcSrc||c.src===fcSrc)});
  return p.map(function(c){return c.id});
 }
-function fcReset(){fcOrder=fcPool();fcIdx=0;fcShow()}
+function fcReset(){
+ var sel=document.getElementById('fcSrc'),cur=sel.value,srcs=[];
+ cards.forEach(function(c){if(c.src&&srcs.indexOf(c.src)<0)srcs.push(c.src)});
+ sel.innerHTML='<option value="">全部来源</option>'+srcs.map(function(s){return '<option value="'+esc(s)+'"'+(s===cur?' selected':'')+'>'+esc(s)+'</option>'}).join('');
+ fcOrder=fcPool();fcIdx=0;fcShow()
+}
 document.getElementById('fcFilter').onchange=function(){fcFilter=this.value;fcReset()};
+document.getElementById('fcSrc').onchange=function(){fcSrc=this.value;fcReset()};
 document.getElementById('btnShuffle').onclick=function(){
  for(var i=fcOrder.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=fcOrder[i];fcOrder[i]=fcOrder[j];fcOrder[j]=t}
  fcIdx=0;fcShow();
@@ -280,7 +325,7 @@ function fcShow(){
  var c=fcCard();
  document.getElementById('fcProg').textContent=fcOrder.length?((fcIdx+1)+' / '+fcOrder.length):'';
  if(!c){document.getElementById('fcFront').innerHTML='<div style="color:var(--mut)">没有卡片'+(fcFilter==='un'?'（未掌握的已学完 🎉）':'')+'</div>';document.getElementById('fcBack').innerHTML='';return}
- document.getElementById('fcFront').innerHTML='<div class="q" style="font-size:18px">'+esc(c.question)+'</div><div style="margin-top:8px"><span class="tag">'+esc(c.subject)+'</span>'+(c.tag?'<span class="tag">'+esc(c.tag)+'</span>':'')+'</div>';
+ document.getElementById('fcFront').innerHTML='<div class="q" style="font-size:18px">'+esc(c.question)+'</div><div style="margin-top:8px">'+(c.src?'<span class="tag">'+esc(c.src)+'</span>':'')+'<span class="tag">'+esc(c.subject)+'</span>'+(c.tag?'<span class="tag">'+esc(c.tag)+'</span>':'')+'</div>';
  document.getElementById('fcBack').innerHTML='<div class="a">✅ '+esc(c.answer)+'</div>'+(c.principle?'<div class="meta">📌 '+esc(c.principle)+'</div>':'');
  var mb=document.getElementById('fcMaster');mb.textContent=c.mastered?'取消掌握':'✓ 掌握了';
 }
@@ -310,6 +355,7 @@ function aiSimilar(card){
    '<div class="q">'+esc(j.question)+'</div>'+
    (j.hint?'<div class="meta">💡 提示：'+esc(j.hint)+'</div>':'')+
    '<details><summary>查看答案</summary><div class="a">'+esc(j.answer)+'</div></details>'+
+   '<div class="meta" style="opacity:.65">⚠️ AI 生成的题目和答案仅供参考，加入练习本前请复核</div>'+
    '<div class="row"><button class="pri" onclick="aiAdd()" style="flex:1">加入练习本</button><button onclick="aiAgain()">再出一题</button><button onclick="mHide()">关闭</button></div>');
  }).catch(function(e){
   mShow('<h3 style="margin-top:0">出错了</h3><div class="a">'+esc(e.message)+'</div><div class="row"><button onclick="mHide()" style="flex:1">关闭</button></div>');
@@ -318,7 +364,7 @@ function aiSimilar(card){
 function aiAgain(){if(lastCard)aiSimilar(lastCard)}
 function aiAdd(){
  if(!lastAI||!lastCard)return;
- cards.unshift({id:uid(),subject:lastCard.subject,tag:lastCard.tag,question:lastAI.question,
+ cards.unshift({id:uid(),subject:lastCard.subject,src:lastCard.src||'',tag:lastCard.tag,question:lastAI.question,
   myAnswer:'',answer:lastAI.answer,principle:lastAI.hint||'',note:'AI 生成的类似题',kind:'practice',mastered:false,createdAt:Date.now()});
  save();renderList();mHide();alert('已加入练习本 ✅');
  document.querySelector('nav button[data-t=tab-list]').click();
@@ -333,13 +379,13 @@ var XCSS='*{box-sizing:border-box}body{margin:0;background:#f4f6fa;font-family:-
 var XJS='var i=0;function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;")}'+
 'function show(){document.querySelector(".fc").classList.remove("flip");var c=CARDS[i];'+
 'document.getElementById("pr").textContent=(i+1)+" / "+CARDS.length;'+
-'document.getElementById("qf").innerHTML="<div class=q>"+esc(c.q)+"</div>"+(c.t?"<div class=m>🏷 "+esc(c.t)+"</div>":"");'+
+'document.getElementById("qf").innerHTML="<div class=q>"+esc(c.q)+"</div>"+(c.s?"<div class=m>📚 "+esc(c.s)+"</div>":"")+(c.t?"<div class=m>🏷 "+esc(c.t)+"</div>":"");'+
 'document.getElementById("qb").innerHTML="<div class=a>✅ "+esc(c.a)+"</div>"+(c.p?"<div class=m>📌 "+esc(c.p)+"</div>":"")}'+
 'function flip(){document.querySelector(".fc").classList.toggle("flip")}'+
 'function next(){i=(i+1)%CARDS.length;show()}function prev(){i=(i-1+CARDS.length)%CARDS.length;show()}show();';
 function exportHTML(){
  if(!cards.length){alert('暂无卡片');return}
- var data=cards.map(function(c){return {q:c.question,a:c.answer,p:c.principle||'',t:(c.tag||c.subject||'')}});
+ var data=cards.map(function(c){return {q:c.question,a:c.answer,p:c.principle||'',t:(c.tag||c.subject||''),s:c.src||''}});
  var json=JSON.stringify(data).replace(/</g,'\\u003c');
  var html='<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">'+
   '<meta name="viewport" content="width=device-width,initial-scale=1"><title>错题闪卡</title><style>'+XCSS+'</style></head><body>'+
