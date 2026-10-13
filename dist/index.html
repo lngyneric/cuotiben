@@ -117,7 +117,7 @@ summary{cursor:pointer;color:var(--pri);font-weight:600;padding:8px 0}
 <script>
 "use strict";
 /* ---------- 数据 ---------- */
-var LS='cuotiben.cards.v1', SEEDK='cuotiben.seeded.v2';
+var LS='cuotiben.cards.v1', SEEDK='cuotiben.seeded.v3';
 function uid(){return 'c'+Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
 function load(){try{return JSON.parse(localStorage.getItem(LS))||[]}catch(e){return[]}}
 function save(){localStorage.setItem(LS,JSON.stringify(cards));stat()}
@@ -226,7 +226,7 @@ var SEED=[
  note:'做到一半'},
 ];
 var cards=load();
-if(!localStorage.getItem(SEEDK)){cards=cards.filter(function(c){return !/^(seed-|ig-|cn-)/.test(c.id||'')});cards=SEED.concat(cards);save();localStorage.setItem(SEEDK,'1')}
+if(!localStorage.getItem(SEEDK)){var mst={};cards.forEach(function(c){if(c.mastered&&/^(seed-|ig-|cn-)/.test(c.id||''))mst[c.id]=1});cards=cards.filter(function(c){return !/^(seed-|ig-|cn-)/.test(c.id||'')});SEED.forEach(function(s){if(mst[s.id])s.mastered=true});cards=SEED.concat(cards);save();localStorage.setItem(SEEDK,'1')}
 function stat(){
  var n=cards.length, m=cards.filter(function(c){return c.mastered}).length;
  document.getElementById('stat').textContent=n?('已掌握 '+m+'/'+n):'';
