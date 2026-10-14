@@ -289,22 +289,17 @@ var SEED=[
   createdAt:1760400000000},
 ];
 var cards=load();
-if(!localStorage.getItem(SEEDK)){
- var seedIds={},i,c,s,j;
- for(i=0;i<SEED.length;i++)seedIds[SEED[i].id]=1;
- var kept=[];
- for(i=0;i<cards.length;i++){c=cards[i];var id=c.id||'';
-  if(/^seed-/.test(id))continue;
-  if(/^(ig-|cn-)/.test(id)&&!seedIds[id])continue;
-  kept.push(c)}
- var byId={};
- for(i=0;i<kept.length;i++)byId[kept[i].id]=kept[i];
+(function(){
+ var i,c,k,mastered={},userCards=[];
+ for(i=0;i<cards.length;i++){c=cards[i];if(!c||!c.id)continue;
+  if(c.mastered)mastered[c.id]=1;
+  if(!/^(seed-|ig-|cn-)/.test(c.id))userCards.push(c)}
  var fresh=[];
- var F=['src','subject','tag','kind','question','myAnswer','answer','principle','note'];
- for(i=0;i<SEED.length;i++){s=SEED[i];c=byId[s.id];
-  if(c){for(j=0;j<F.length;j++)c[F[j]]=s[F[j]]}
-  else fresh.push(s)}
- cards=fresh.concat(kept);save();localStorage.setItem(SEEDK,'1')}
+ for(i=0;i<SEED.length;i++){var s=SEED[i],n={};
+  for(k in s)n[k]=s[k];
+  if(mastered[s.id])n.mastered=true;
+  fresh.push(n)}
+ cards=fresh.concat(userCards);save()})();
 function stat(){
  var n=cards.length, m=cards.filter(function(c){return c.mastered}).length;
  document.getElementById('stat').textContent=n?('已掌握 '+m+'/'+n):'';
