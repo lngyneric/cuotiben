@@ -55,14 +55,6 @@ export default {
       }
     }
 
-    // 静态资源：HTML 不缓存，确保每次打开都是最新版本
-    var res = await env.ASSETS.fetch(req);
-    var ct = res.headers.get('content-type') || '';
-    if (ct.indexOf('text/html') !== -1) {
-      var h = new Headers(res.headers);
-      h.set('Cache-Control', 'no-store');
-      return new Response(res.body, { status: res.status, statusText: res.statusText, headers: h });
-    }
-    return res;
+    return env.ASSETS.fetch(req);
   }
 };
