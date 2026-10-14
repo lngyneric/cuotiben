@@ -224,9 +224,87 @@ var SEED=[
  answer:'8≤c<14',
  principle:'非负数和为零→每个为零；再用三角形三边关系 + c 最长列不等式。',
  note:'做到一半'},
+ {id:'cn-06',src:'中文数学',subject:'数学',tag:'二次根式',kind:'mistake',
+  question:'如果√(a²)=9，√b=4，那么 a+b =？',
+  myAnswer:'25',
+  answer:'25 或 7',
+  principle:'√(a²)=|a|，开出来有两个值；分类讨论。',
+  note:'第二次犯同样的漏解错误！a=±9，b=16，所以 a+b=25 或 7。',
+  createdAt:1760400000000},
+ {id:'cn-07',src:'中文数学',subject:'数学',tag:'二次根式',kind:'mistake',
+  question:'如果 y=√(3x−6)+√(6−3x)+x³，那么 √(10x+2y) 的平方根为？',
+  myAnswer:'±√6',
+  answer:'±6',
+  principle:'二次根式有意义→被开方数≥0；平方根有两个（正负）。',
+  note:'x=2，y=8，10x+2y=36，36 的平方根是 ±6，不是 ±√6。',
+  createdAt:1760400000000},
+ {id:'cn-08',src:'中文数学',subject:'数学',tag:'最简二次根式',kind:'mistake',
+  question:'下列二次根式中，是最简二次根式的是？A.√(12x) B.√(x−9) C.√((a+b)/b) D.√(5x²y)',
+  myAnswer:'D',
+  answer:'B',
+  principle:'最简二次根式：被开方数不含分母、不含开得尽方的因数。',
+  note:'D=√(5x²y)=|x|√(5y)，x² 能开出来，不是最简；B 的被开方数 x−9 已最简。',
+  createdAt:1760400000000},
+ {id:'cn-09',src:'中文数学',subject:'数学',tag:'科学记数法',kind:'mistake',
+  question:'数据 0.0000000004 用科学记数法表示为？',
+  myAnswer:'0.4×10⁻¹⁰',
+  answer:'4×10⁻¹⁰',
+  principle:'科学记数法 a×10ⁿ，要求 1≤|a|<10。',
+  note:'0.4×10⁻¹⁰ 数值对但不规范，a 必须是 1 到 10 之间（含 1 不含 10）。',
+  createdAt:1760400000000},
+ {id:'cn-10',src:'中文数学',subject:'数学',tag:'实数比较大小',kind:'mistake',
+  question:'下列各式中，正确的是？A.−√3<−2 B.−√3<−√3/3 C.−√2<−√3 D.√2−1/√2=0',
+  myAnswer:'C',
+  answer:'B',
+  principle:'负数比较大小：绝对值大的反而小；√3≈1.73。',
+  note:'−√3≈−1.73，−√3/3≈−0.58，−1.73<−0.58 成立。C 中 −√2≈−1.41>−√3≈−1.73，不成立。',
+  createdAt:1760400000000},
+ {id:'cn-11',src:'中文数学',subject:'数学',tag:'化简',kind:'mistake',
+  question:'化简：1/(m−n)·√(m³−2m²n+mn²)（0<m<n）。',
+  myAnswer:'（只分解到 m(m−n)²，未完成）',
+  answer:'−√m',
+  principle:'√(a²)=|a|；去绝对值先看符号。',
+  note:'=1/(m−n)·|m−n|√m；因为 0<m<n，所以 |m−n|=n−m，结果为 −√m。',
+  createdAt:1760400000000},
+ {id:'cn-12',src:'中文数学',subject:'数学',tag:'三角形三边关系',kind:'mistake',
+  question:'△ABC 三边为 a,b,c，满足 √(a²−12a+36)+√(b−8)=0，求最长边 c 的取值范围。',
+  myAnswer:'（只求出 a=6，b=8，未完成）',
+  answer:'8≤c<14',
+  principle:'非负数和为零→每个为零；三角形三边关系；c 最长。',
+  note:'a=6，b=8 后：8−6<c<8+6，又 c 最长 ≥8，得 8≤c<14。',
+  createdAt:1760400000000},
+ {id:'cn-13',src:'中文数学',subject:'数学',tag:'化简',kind:'mistake',
+  question:'化简：√(12/(5x²y³))（x>0，y>0）。',
+  myAnswer:'（思路混乱，多次涂改）',
+  answer:'2√(15y)/(5xy²)',
+  principle:'分母有理化；√(a/b)=√a/√b。',
+  note:'分子分母同乘 5y：=√(60y/(25x²y⁴))=2√(15y)/(5xy²)。',
+  createdAt:1760400000000},
+ {id:'cn-14',src:'中文数学',subject:'数学',tag:'化简',kind:'mistake',
+  question:'化简：(a²b)/(2c)·√(8c³/(a³b))（a>0，b>0）。',
+  myAnswer:'（涂改未完成）',
+  answer:'√(2abc)',
+  principle:'√a·√b=√(ab)；约分。',
+  note:'=a²b/(2c)·2c√(2c)/(a√(ab))=ab√(2c)/√(ab)=√(2abc)。',
+  createdAt:1760400000000},
 ];
 var cards=load();
-if(!localStorage.getItem(SEEDK)){var mst={};cards.forEach(function(c){if(c.mastered&&/^(seed-|ig-|cn-)/.test(c.id||''))mst[c.id]=1});cards=cards.filter(function(c){return !/^(seed-|ig-|cn-)/.test(c.id||'')});SEED.forEach(function(s){if(mst[s.id])s.mastered=true});cards=SEED.concat(cards);save();localStorage.setItem(SEEDK,'1')}
+if(!localStorage.getItem(SEEDK)){
+ var seedIds={},i,c,s,j;
+ for(i=0;i<SEED.length;i++)seedIds[SEED[i].id]=1;
+ var kept=[];
+ for(i=0;i<cards.length;i++){c=cards[i];var id=c.id||'';
+  if(/^seed-/.test(id))continue;
+  if(/^(ig-|cn-)/.test(id)&&!seedIds[id])continue;
+  kept.push(c)}
+ var byId={};
+ for(i=0;i<kept.length;i++)byId[kept[i].id]=kept[i];
+ var fresh=[];
+ var F=['src','subject','tag','kind','question','myAnswer','answer','principle','note'];
+ for(i=0;i<SEED.length;i++){s=SEED[i];c=byId[s.id];
+  if(c){for(j=0;j<F.length;j++)c[F[j]]=s[F[j]]}
+  else fresh.push(s)}
+ cards=fresh.concat(kept);save();localStorage.setItem(SEEDK,'1')}
 function stat(){
  var n=cards.length, m=cards.filter(function(c){return c.mastered}).length;
  document.getElementById('stat').textContent=n?('已掌握 '+m+'/'+n):'';
