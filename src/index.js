@@ -121,33 +121,47 @@ export default {
         }
       }
 
-      // --- 判分（自由文本，Clef）---
+      // --- 判分（自由文本，Clef 优先，失败回退 Llama）---
       if (action === 'judge') {
         var student = String(b.student || '').slice(0, 1000);
         if (!q || !student) return Response.json({ error: '题目和回答不能为空' }, { status: 400 });
+        // 1) 尝试 Clef（SystemOne API：model + state + questions）
         try {
           var outJ = await env.AI.run(JUDGE_MODEL, {
-            messages: [
-              { role: 'system', content: 'You are a strict but fair grader. Judge whether the student answer is correct.' },
-              { role: 'user', content: 'Question: ' + q + '\nExpected answer: ' + a + '\nStudent answer: ' + student + '\n\nIs the student answer correct?' }
-            ],
-            criteria: {
-              correct: 'The student answer captures the key points or meaning of the expected answer (wording may differ, language may differ)',
-              incorrect: 'The student answer is wrong, contradicts the expected answer, or misses the key points'
+            model: 'clef-flash',
+            state: 'Question: ' + q + '\nExpected answer: ' + a + '\nStudent answer: ' + student,
+            questions: {
+              verdict: {
+                type: 'choice',
+                instructions: 'Is the student answer correct? Judge strictly but fairly.',
+                criteria: {
+                  correct: 'The student answer captures the key points or meaning of the expected answer (wording may differ, language may differ)',
+                  incorrect: 'The student answer is wrong, contradicts the expected answer, or misses the key points'
+                }
+              }
             }
           });
           var choice = '', conf = 0;
           try {
-            var route = outJ.answers.route;
-            choice = String(route.choice || '');
-            conf = Number(route.confidence || 0);
+            var verdict = outJ.answers.verdict;
+            choice = String(verdict.choice || '');
+            conf = Number(verdict.confidence || 0);
           } catch (e) {}
-          // 兜底：如果解析失败，用关键词启发式
-          if (!choice) {
-            var low = (a + ' ' + student).toLowerCase();
-            choice = 'incorrect'; conf = 0.5;
+          if (choice === 'correct' || choice === 'incorrect') {
+            return Response.json({ correct: choice === 'correct', confidence: conf, by: 'clef' });
           }
-          return Response.json({ correct: choice === 'correct', confidence: conf });
+        } catch (e) {}
+        // 2) 回退 Llama 判分
+        try {
+          var outL = await env.AI.run(MODEL, {
+            messages: [
+              { role: 'system', content: '你是严格的判分老师。只返回 JSON：{"correct":true/false}，不要输出其他文字。' },
+              { role: 'user', content: '题目：' + q + '\n期望答案：' + a + '\n学生回答：' + student + '\n\n学生回答是否正确（抓住关键点即算对）？' }
+            ],
+            max_tokens: 50
+          });
+          var jL = JSON.parse(cleanJson(aiText(outL)));
+          return Response.json({ correct: !!jL.correct, confidence: 0.7, by: 'llama' });
         } catch (e) {
           return Response.json({ error: '判分失败，请稍后重试' }, { status: 502 });
         }
