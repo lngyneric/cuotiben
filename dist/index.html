@@ -109,10 +109,22 @@ summary{cursor:pointer;color:var(--pri);font-weight:600;padding:8px 0}
       <div class="row"><button class="pri" id="btnSave" style="flex:1">保存错题</button></div>
     </div>
   </section>
+
+  <section id="tab-study" class="hide">
+    <div class="card">
+      <h3 style="margin:0 0 10px">📅 今日计划</h3>
+      <div id="studyPlan"></div>
+    </div>
+    <div class="card">
+      <h3 style="margin:0 0 10px">📊 学习统计</h3>
+      <div id="studyStats"></div>
+    </div>
+  </section>
 </main>
 <nav>
   <button data-t="tab-list" class="on"><span class="ic">📝</span>错题</button>
   <button data-t="tab-fc"><span class="ic">🃏</span>闪卡</button>
+  <button data-t="tab-study"><span class="ic">📊</span>学习</button>
   <button data-t="tab-add"><span class="ic">➕</span>添加</button>
 </nav>
 <div id="modal" class="hide"></div>
@@ -367,7 +379,8 @@ document.querySelectorAll('nav button').forEach(function(b){
  b.onclick=function(){
   document.querySelectorAll('nav button').forEach(function(x){x.classList.remove('on')});
   b.classList.add('on');
-  ['tab-list','tab-fc','tab-add'].forEach(function(t){document.getElementById(t).classList.add('hide')});
+  ['tab-list','tab-fc','tab-study','tab-add'].forEach(function(t){document.getElementById(t).classList.add('hide')});
+  if(t==='tab-study')renderStudy();
   document.getElementById(b.dataset.t).classList.remove('hide');
   if(b.dataset.t==='tab-fc')fcReset();
  };
@@ -508,8 +521,12 @@ function openQA(){
   (c.diagram?'<div class="diagram">'+c.diagram+'</div>':'')+
   '<div class="q" style="font-size:16px;margin-bottom:12px">'+esc(c.question)+'</div>'+
   '<div id="qaBody"><div style="color:var(--mut)">正在准备题目…</div></div>'+
-  '<div style="display:flex;gap:8px;margin-top:12px"><button onclick="mHide()" style="flex:1;background:#e5e7eb;color:#333">关闭</button></div>';
+  '<div style="display:flex;gap:8px;margin-top:12px"><button id="qaSkip" style="flex:1;background:#fef3c7;color:#92400e">⏭ 跳过</button><button onclick="mHide()" style="flex:1;background:#e5e7eb;color:#333">关闭</button></div>';
  mShow(html);
+ document.getElementById('qaSkip').onclick=function(){
+  qaLog(qaCard.id,qaStep||'answer',false,true);
+  mHide();
+ };
  if(math){qaStep='approaches';qaFetchApproaches()}
  else{qaStep='answer';qaShowAnswer()}
 }
@@ -536,6 +553,7 @@ async function qaFetchApproaches(){
 }
 function qaPickApproach(i,btn){
  var o=qaData.options[i];
+ qaLog(qaCard.id,'approach',o.correct,false);
  var feed=document.getElementById('qaFeed');
  document.querySelectorAll('.qa-opt').forEach(function(b){b.style.pointerEvents='none';b.style.opacity='.7'});
  if(o.correct){
@@ -580,6 +598,7 @@ async function qaJudgeFollowup(){
  try{
   var j=await qaPost({action:'judge',question:qaData.followup||qaCard.question,expected:qaCard.answer,student:v});
   if(j.error){feed.innerHTML='<div style="color:#dc2626">'+esc(j.error)+'</div>';return}
+  qaLog(qaCard.id,'followup',j.correct,false);
   if(j.correct){
    feed.innerHTML='<div style="color:#16a34a;font-weight:700">🎉 回答正确，概念清晰！</div>';
   }else{
@@ -610,6 +629,7 @@ async function qaJudgeAnswer(){
  try{
   var j=await qaPost({action:'judge',question:qaCard.question,expected:qaCard.answer,student:v});
   if(j.error){feed.innerHTML='<div style="color:#dc2626">'+esc(j.error)+'</div>';return}
+  qaLog(qaCard.id,'answer',j.correct,false);
   if(j.correct){
    feed.innerHTML='<div style="color:#16a34a;font-weight:700">✅ 答对了！</div>';
    qaStep='followup';
@@ -638,6 +658,83 @@ function qaReveal(){
  document.getElementById('qaFeed').innerHTML='<div class="a">✅ '+esc(qaCard.answer)+'</div>'+(qaCard.principle?'<div class="meta">📌 '+esc(qaCard.principle)+'</div>':'');
 }
 document.getElementById('fcQA').onclick=openQA;
+/* ---------- 学习记录与艾宾浩斯 ---------- */
+var QA_LOG_K='cuotiben.qa.log.v1', SRS_K='cuotiben.qa.srs.v1';
+function loadLog(){try{return JSON.parse(localStorage.getItem(QA_LOG_K))||[]}catch(e){return[]}}
+function saveLog(l){try{localStorage.setItem(QA_LOG_K,JSON.stringify(l.slice(-2000)))}catch(e){}}
+function loadSRS(){try{return JSON.parse(localStorage.getItem(SRS_K))||{}}catch(e){return{}}}
+function saveSRS(s){try{localStorage.setItem(SRS_K,JSON.stringify(s))}catch(e){}}
+function qaLog(cardId,kind,ok,skip){
+ var l=loadLog();
+ l.push({id:cardId,ts:Date.now(),kind:kind,ok:!!ok,skip:!!skip});
+ saveLog(l);
+ var s=loadSRS(), st=s[cardId]||{ivl:0,ease:2.5,due:0,reps:0};
+ if(skip){st.due=Date.now()+86400000}
+ else if(ok){
+  st.reps++;
+  if(st.reps===1)st.ivl=1;
+  else if(st.reps===2)st.ivl=3;
+  else st.ivl=Math.min(60,Math.round(st.ivl*st.ease));
+  st.ease=Math.min(3.0,st.ease+0.1);
+  st.due=Date.now()+st.ivl*86400000;
+ }else{
+  st.reps=0;st.ivl=1;
+  st.ease=Math.max(1.3,st.ease-0.2);
+  st.due=Date.now()+86400000;
+ }
+ s[cardId]=st;saveSRS(s);
+}
+function dueCards(){
+ var s=loadSRS(), now=Date.now(), out=[];
+ cards.forEach(function(c){
+  var st=s[c.id];
+  if(!st||st.due<=now)out.push(c);
+ });
+ return out;
+}
+function todayStats(){
+ var l=loadLog(), start=new Date();start.setHours(0,0,0,0);
+ var t0=start.getTime();
+ var today=l.filter(function(e){return e.ts>=t0});
+ var app=today.filter(function(e){return e.kind==='approach'});
+ return {
+  total:today.length,
+  correct:today.filter(function(e){return e.ok&&!e.skip}).length,
+  skipped:today.filter(function(e){return e.skip}).length,
+  approachTotal:app.length,
+  approachWrong:app.filter(function(e){return !e.ok&&!e.skip}).length,
+  allTotal:l.length
+ };
+}
+function renderStudy(){
+ var due=dueCards(), st=todayStats();
+ var ph='<div style="font-size:15px;margin-bottom:8px">今日待复习 <b>'+due.length+'</b> 张';
+ if(due.length)ph+=' <button id="studyStart" class="pri" style="padding:8px 16px;margin-left:8px">开始问答 →</button>';
+ ph+='</div>';
+ if(due.length){
+  ph+='<div style="max-height:220px;overflow:auto">'+due.slice(0,10).map(function(c){
+   return '<div style="padding:6px 0;border-bottom:1px solid var(--line);font-size:14px">• '+esc((c.question||'').slice(0,42))+'… <span class="tag">'+esc(c.subject||'')+'</span></div>';
+  }).join('')+(due.length>10?'<div style="color:var(--mut);font-size:13px">…还有 '+(due.length-10)+' 张</div>':'')+'</div>';
+ }else{
+  ph+='<div style="color:#16a34a">🎉 今日复习全部完成！</div>';
+ }
+ document.getElementById('studyPlan').innerHTML=ph;
+ var sb=document.getElementById('studyStart');
+ if(sb)sb.onclick=function(){
+  document.querySelector('nav button[data-t=tab-fc]').click();
+  var idx=fcOrder.indexOf(due[0].id);
+  if(idx>=0){fcIdx=idx;fcShow()}
+  setTimeout(openQA,300);
+ };
+ var acc=st.total?Math.round(st.correct/st.total*100):0;
+ var sh='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:14px">'+
+  '<div style="background:#f8fafc;padding:10px;border-radius:8px">今日作答<br><b style="font-size:20px">'+st.total+'</b> 次</div>'+
+  '<div style="background:#f8fafc;padding:10px;border-radius:8px">今日正确率<br><b style="font-size:20px">'+acc+'%</b></div>'+
+  '<div style="background:#fef2f2;padding:10px;border-radius:8px">思路选错<br><b style="font-size:20px;color:#dc2626">'+st.approachWrong+'</b> / '+st.approachTotal+'</div>'+
+  '<div style="background:#f8fafc;padding:10px;border-radius:8px">今日跳过<br><b style="font-size:20px">'+st.skipped+'</b> 次</div></div>'+
+  '<div style="margin-top:8px;color:var(--mut);font-size:13px">累计问答 '+st.allTotal+' 次 · 艾宾浩斯：答对间隔拉长（1→3→7→…天），答错/跳过明天重来</div>';
+ document.getElementById('studyStats').innerHTML=sh;
+}
 /* ---------- 导出单文件闪卡 HTML ---------- */
 var XCSS='*{box-sizing:border-box}body{margin:0;background:#f4f6fa;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;padding:16px}'+
 'h1{font-size:20px;text-align:center}.fc{perspective:1200px;margin:20px auto;max-width:560px}.fci{position:relative;min-height:280px;transform-style:preserve-3d;transition:transform .45s;cursor:pointer}'+
