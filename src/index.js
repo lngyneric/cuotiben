@@ -125,23 +125,27 @@ export default {
       if (action === 'judge') {
         var student = String(b.student || '').slice(0, 1000);
         if (!q || !student) return Response.json({ error: '题目和回答不能为空' }, { status: 400 });
-        // 1) 尝试 Clef
+        // 1) 尝试 Clef（SystemOne API：model + state + questions）
         try {
           var outJ = await env.AI.run(JUDGE_MODEL, {
-            messages: [
-              { role: 'system', content: 'You are a strict but fair grader. Judge whether the student answer is correct.' },
-              { role: 'user', content: 'Question: ' + q + '\nExpected answer: ' + a + '\nStudent answer: ' + student + '\n\nIs the student answer correct?' }
-            ],
-            criteria: {
-              correct: 'The student answer captures the key points or meaning of the expected answer (wording may differ, language may differ)',
-              incorrect: 'The student answer is wrong, contradicts the expected answer, or misses the key points'
+            model: 'clef-flash',
+            state: 'Question: ' + q + '\nExpected answer: ' + a + '\nStudent answer: ' + student,
+            questions: {
+              verdict: {
+                type: 'choice',
+                instructions: 'Is the student answer correct? Judge strictly but fairly.',
+                criteria: {
+                  correct: 'The student answer captures the key points or meaning of the expected answer (wording may differ, language may differ)',
+                  incorrect: 'The student answer is wrong, contradicts the expected answer, or misses the key points'
+                }
+              }
             }
           });
           var choice = '', conf = 0;
           try {
-            var route = outJ.answers.route;
-            choice = String(route.choice || '');
-            conf = Number(route.confidence || 0);
+            var verdict = outJ.answers.verdict;
+            choice = String(verdict.choice || '');
+            conf = Number(verdict.confidence || 0);
           } catch (e) {}
           if (choice === 'correct' || choice === 'incorrect') {
             return Response.json({ correct: choice === 'correct', confidence: conf, by: 'clef' });
