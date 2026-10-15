@@ -42,6 +42,7 @@ label{display:block;font-size:14px;color:var(--mut);margin:12px 0 4px}
 .fc-hint{text-align:center;color:var(--mut);font-size:13px;margin-top:10px}
 .fc-ctl{display:flex;gap:8px;justify-content:center;margin:14px 0;flex-wrap:wrap}
 .prog{text-align:center;color:var(--mut);font-size:14px}
+.diagram{text-align:center;margin:4px 0 10px}.diagram svg{max-width:100%;height:auto}
 /* modal */
 .mback{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:50;display:flex;align-items:flex-end;justify-content:center}
 .mbox{background:#fff;border-radius:18px 18px 0 0;width:100%;max-width:680px;max-height:85vh;overflow:auto;padding:18px}
@@ -287,6 +288,30 @@ var SEED=[
   principle:'√a·√b=√(ab)；约分。',
   note:'=a²b/(2c)·2c√(2c)/(a√(ab))=ab√(2c)/√(ab)=√(2abc)。',
   createdAt:1760400000000},
+ {id:'cn-15',src:'中文数学',subject:'数学',tag:'二次根式',kind:'mistake',
+  diagram:'<svg viewBox="0 0 400 70" xmlns="http://www.w3.org/2000/svg"><defs><marker id="ah" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#333"/></marker></defs><line x1="15" y1="40" x2="385" y2="40" stroke="#333" stroke-width="2" marker-end="url(#ah)"/><circle cx="105" cy="40" r="4" fill="#333"/><text x="105" y="24" text-anchor="middle" font-size="14">B</text><text x="105" y="60" text-anchor="middle" font-size="13">b</text><line x1="190" y1="34" x2="190" y2="46" stroke="#333" stroke-width="2"/><text x="190" y="60" text-anchor="middle" font-size="13">0</text><line x1="220" y1="34" x2="220" y2="46" stroke="#333" stroke-width="2"/><text x="220" y="60" text-anchor="middle" font-size="13">1</text><circle cx="315" cy="40" r="4" fill="#333"/><text x="315" y="24" text-anchor="middle" font-size="14">A</text><text x="315" y="60" text-anchor="middle" font-size="13">a</text></svg>',
+  question:'如图，数轴上点 A 与点 B 分别对应实数 a、b，下列判断正确的是？①(√a)²=a；②√(a²)=−a；③√((a+b)²)=a+b；④√((b−a)²)=b−a。A.①②对 B.①③对 C.①④对 D.②③对',
+  myAnswer:'（题型卡：做对了，留作复习）',
+  answer:'B（①③正确，②④错误）。a>1>0，b<0：②√(a²)=|a|=a≠−a；④√((b−a)²)=|b−a|=a−b≠b−a。',
+  principle:'√(a²)=|a|，去根号先看符号；数轴判断正负。',
+  note:'数轴题型：先读出 a、b 的正负和大小关系，再逐个判断。',
+  createdAt:1760400000000},
+ {id:'cn-16',src:'中文数学',subject:'数学',tag:'二次根式应用',kind:'mistake',
+  diagram:'<svg viewBox="0 0 220 170" xmlns="http://www.w3.org/2000/svg"><rect x="20" y="50" width="110" height="110" fill="none" stroke="#333" stroke-width="2"/><circle cx="152" cy="68" r="46" fill="none" stroke="#333" stroke-width="2"/><circle cx="152" cy="68" r="3" fill="#333"/></svg>',
+  question:'如图，一个花圃由圆与正方形组成，已知圆的半径为 2m，重叠部分的面积占圆面积的 1/5，占正方形面积的 1/6，求正方形的边长。（保留 3 个有效数字）',
+  myAnswer:'（空白未做）',
+  answer:'≈3.88m。重叠面积=π×2²×1/5=4π/5；正方形面积=4π/5÷1/6=24π/5；边长=√(24π/5)≈3.88。',
+  principle:'重叠部分面积用两种方式表示，列等式求解。',
+  note:'关键：重叠面积=圆面积×1/5=正方形面积×1/6，先求重叠面积。',
+  createdAt:1760400000000},
+ {id:'cn-17',src:'中文数学',subject:'数学',tag:'二次根式应用',kind:'mistake',
+  diagram:'<svg viewBox="0 0 200 175" xmlns="http://www.w3.org/2000/svg"><line x1="30" y1="18" x2="170" y2="18" stroke="#333" stroke-width="3"/><path d="M50,12 l8,12 M70,12 l8,12 M90,12 l8,12 M110,12 l8,12 M130,12 l8,12 M150,12 l8,12" stroke="#333" stroke-width="2" fill="none"/><line x1="100" y1="18" x2="100" y2="132" stroke="#999" stroke-width="2" stroke-dasharray="6,4"/><line x1="100" y1="18" x2="142" y2="128" stroke="#333" stroke-width="2"/><circle cx="100" cy="141" r="8" fill="#fff" stroke="#333" stroke-width="2"/><circle cx="144" cy="137" r="8" fill="#fff" stroke="#333" stroke-width="2"/></svg>',
+  question:'如图，细线上端固定，下端系一重物，重物来回自由摆动一次所用时间 t(s)与细线长度 L(m)的关系式为 t=2π√(L/9.8)，当 L=0.49m 时，求 t 的值。（精确到 0.1s）',
+  myAnswer:'（空白未做）',
+  answer:'≈1.4s。t=2π√(0.49/9.8)=2π√0.05=2π×√5/10≈1.4。',
+  principle:'代入公式计算；√0.05=√5/10。',
+  note:'0.49/9.8=0.05，√0.05=√(5/100)=√5/10≈0.224，t≈2×3.14×0.224≈1.4。',
+  createdAt:1760400000000},
 ];
 var cards=load();
 (function(){
@@ -399,7 +424,7 @@ function fcShow(){
  var c=fcCard();
  document.getElementById('fcProg').textContent=fcOrder.length?((fcIdx+1)+' / '+fcOrder.length):'';
  if(!c){document.getElementById('fcFront').innerHTML='<div style="color:var(--mut)">没有卡片'+(fcFilter==='un'?'（未掌握的已学完 🎉）':'')+'</div>';document.getElementById('fcBack').innerHTML='';return}
- document.getElementById('fcFront').innerHTML='<div class="q" style="font-size:18px">'+esc(c.question)+'</div><div style="margin-top:8px">'+(c.src?'<span class="tag">'+esc(c.src)+'</span>':'')+'<span class="tag">'+esc(c.subject)+'</span>'+(c.tag?'<span class="tag">'+esc(c.tag)+'</span>':'')+'</div>';
+ document.getElementById('fcFront').innerHTML=(c.diagram?'<div class="diagram">'+c.diagram+'</div>':'')+'<div class="q" style="font-size:18px">'+esc(c.question)+'</div><div style="margin-top:8px">'+(c.src?'<span class="tag">'+esc(c.src)+'</span>':'')+'<span class="tag">'+esc(c.subject)+'</span>'+(c.tag?'<span class="tag">'+esc(c.tag)+'</span>':'')+'</div>';
  document.getElementById('fcBack').innerHTML='<div class="a">✅ '+esc(c.answer)+'</div>'+(c.principle?'<div class="meta">📌 '+esc(c.principle)+'</div>':'');
  var mb=document.getElementById('fcMaster');mb.textContent=c.mastered?'取消掌握':'✓ 掌握了';
 }
@@ -449,16 +474,16 @@ var XCSS='*{box-sizing:border-box}body{margin:0;background:#f4f6fa;font-family:-
 '.flip .fci{transform:rotateY(180deg)}.ff{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:#fff;border-radius:16px;box-shadow:0 4px 14px rgba(0,0,0,.12);padding:24px;display:flex;flex-direction:column;justify-content:center}'+
 '.fb{transform:rotateY(180deg)}.q{font-weight:700;font-size:18px;white-space:pre-wrap}.a{background:#f0f6ff;border-left:3px solid #2563eb;padding:10px;border-radius:0 8px 8px 0;margin-top:12px;white-space:pre-wrap}'+
 '.m{color:#666;font-size:14px;margin-top:8px;white-space:pre-wrap}.ctl{display:flex;gap:8px;justify-content:center;margin:12px}'+
-'button{border:0;border-radius:10px;padding:12px 18px;font-size:16px;background:#2563eb;color:#fff}.pg{text-align:center;color:#666}';
+'button{border:0;border-radius:10px;padding:12px 18px;font-size:16px;background:#2563eb;color:#fff}.pg{text-align:center;color:#666}.diagram{text-align:center;margin:4px 0 10px}.diagram svg{max-width:100%;height:auto}';
 var XJS='var i=0;function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;")}'+
 'function show(){document.querySelector(".fc").classList.remove("flip");var c=CARDS[i];'+
 'document.getElementById("pr").textContent=(i+1)+" / "+CARDS.length;'+
-'document.getElementById("qf").innerHTML="<div class=q>"+esc(c.q)+"</div>"+(c.s?"<div class=m>📚 "+esc(c.s)+"</div>":"")+(c.t?"<div class=m>🏷 "+esc(c.t)+"</div>":"");'+
+'document.getElementById("qf").innerHTML=(c.d?"<div class=diagram>"+c.d+"</div>":"")+"<div class=q>"+esc(c.q)+"</div>"+(c.s?"<div class=m>📚 "+esc(c.s)+"</div>":"")+(c.t?"<div class=m>🏷 "+esc(c.t)+"</div>":"");'+
 'document.getElementById("qb").innerHTML="<div class=a>✅ "+esc(c.a)+"</div>"+(c.p?"<div class=m>📌 "+esc(c.p)+"</div>":"")}'+
 'function flip(){document.querySelector(".fc").classList.toggle("flip")}'+
 'function next(){i=(i+1)%CARDS.length;show()}function prev(){i=(i-1+CARDS.length)%CARDS.length;show()}show();';
 function buildStandaloneHTML(){
- var data=cards.map(function(c){return {q:c.question,a:c.answer,p:c.principle||'',t:(c.tag||c.subject||''),s:c.src||''}});
+ var data=cards.map(function(c){return {q:c.question,a:c.answer,p:c.principle||'',t:(c.tag||c.subject||''),s:c.src||'',d:c.diagram||''}});
  var json=JSON.stringify(data).replace(/</g,'\\u003c');
  return '<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">'+
   '<meta name="viewport" content="width=device-width,initial-scale=1"><title>错题闪卡</title><style>'+XCSS+'</style></head><body>'+
