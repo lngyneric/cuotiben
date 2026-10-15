@@ -380,8 +380,8 @@ document.querySelectorAll('nav button').forEach(function(b){
   document.querySelectorAll('nav button').forEach(function(x){x.classList.remove('on')});
   b.classList.add('on');
   ['tab-list','tab-fc','tab-study','tab-add'].forEach(function(t){document.getElementById(t).classList.add('hide')});
-  if(t==='tab-study')renderStudy();
   document.getElementById(b.dataset.t).classList.remove('hide');
+  if(b.dataset.t==='tab-study')renderStudy();
   if(b.dataset.t==='tab-fc')fcReset();
  };
 });
