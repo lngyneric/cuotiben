@@ -121,10 +121,11 @@ export default {
         }
       }
 
-      // --- 判分（自由文本，Clef）---
+      // --- 判分（自由文本，Clef 优先，失败回退 Llama）---
       if (action === 'judge') {
         var student = String(b.student || '').slice(0, 1000);
         if (!q || !student) return Response.json({ error: '题目和回答不能为空' }, { status: 400 });
+        // 1) 尝试 Clef
         try {
           var outJ = await env.AI.run(JUDGE_MODEL, {
             messages: [
@@ -142,12 +143,21 @@ export default {
             choice = String(route.choice || '');
             conf = Number(route.confidence || 0);
           } catch (e) {}
-          // 兜底：如果解析失败，用关键词启发式
-          if (!choice) {
-            var low = (a + ' ' + student).toLowerCase();
-            choice = 'incorrect'; conf = 0.5;
+          if (choice === 'correct' || choice === 'incorrect') {
+            return Response.json({ correct: choice === 'correct', confidence: conf, by: 'clef' });
           }
-          return Response.json({ correct: choice === 'correct', confidence: conf });
+        } catch (e) {}
+        // 2) 回退 Llama 判分
+        try {
+          var outL = await env.AI.run(MODEL, {
+            messages: [
+              { role: 'system', content: '你是严格的判分老师。只返回 JSON：{"correct":true/false}，不要输出其他文字。' },
+              { role: 'user', content: '题目：' + q + '\n期望答案：' + a + '\n学生回答：' + student + '\n\n学生回答是否正确（抓住关键点即算对）？' }
+            ],
+            max_tokens: 50
+          });
+          var jL = JSON.parse(cleanJson(aiText(outL)));
+          return Response.json({ correct: !!jL.correct, confidence: 0.7, by: 'llama' });
         } catch (e) {
           return Response.json({ error: '判分失败，请稍后重试' }, { status: 502 });
         }
