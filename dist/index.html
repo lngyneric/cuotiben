@@ -89,6 +89,7 @@ summary{cursor:pointer;color:var(--pri);font-weight:600;padding:8px 0}
     <div class="fc-ctl">
       <button id="fcPrev">◀ 上一张</button>
       <button id="fcMaster" class="okb">✓ 掌握了</button>
+      <button id="fcQA">💬 问答</button>
       <button id="fcNext" class="pri">下一张 ▶</button>
     </div>
   </section>
@@ -496,6 +497,147 @@ function aiAdd(){
  save();renderList();mHide();alert('已加入练习本 ✅');
  document.querySelector('nav button[data-t=tab-list]').click();
 }
+/* ---------- 问答模式 ---------- */
+var qaCard=null, qaData=null, qaAttempt=0, qaStep='';
+function isMathCard(c){return /数学|math/i.test(c.subject||'')}
+function openQA(){
+ var c=fcCard();if(!c){alert('没有卡片');return}
+ qaCard=c;qaAttempt=0;qaData=null;
+ var math=isMathCard(c);
+ var html='<h3 style="margin:0 0 10px">💬 问答模式</h3>'+
+  (c.diagram?'<div class="diagram">'+c.diagram+'</div>':'')+
+  '<div class="q" style="font-size:16px;margin-bottom:12px">'+esc(c.question)+'</div>'+
+  '<div id="qaBody"><div style="color:var(--mut)">正在准备题目…</div></div>'+
+  '<div style="display:flex;gap:8px;margin-top:12px"><button onclick="mHide()" style="flex:1;background:#e5e7eb;color:#333">关闭</button></div>';
+ mShow(html);
+ if(math){qaStep='approaches';qaFetchApproaches()}
+ else{qaStep='answer';qaShowAnswer()}
+}
+async function qaPost(body){
+ var r=await fetch('/api/qa',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+ return r.json();
+}
+function qaErr(e){document.getElementById('qaBody').innerHTML='<div style="color:#dc2626">出错了：'+esc(e.error||'请重试')+'</div>'}
+// --- 数学：选解题思路 ---
+async function qaFetchApproaches(){
+ try{
+  var j=await qaPost({action:'approaches',question:qaCard.question,answer:qaCard.answer,principle:qaCard.principle||'',myAnswer:qaCard.myAnswer||'',subject:qaCard.subject});
+  if(j.error)return qaErr(j);
+  qaData=j;
+  var h='<div style="font-weight:700;margin-bottom:8px">第一步：选择正确的解题思路</div>';
+  j.options.forEach(function(o,i){
+   h+='<button class="qa-opt" data-i="'+i+'" style="display:block;width:100%;text-align:left;margin:6px 0;padding:12px;background:#f8fafc;border:2px solid #e2e8f0;border-radius:10px;font-size:15px;color:#1e293b;cursor:pointer">'+esc(o.text)+'</button>';
+  });
+  h+='<div id="qaFeed" style="margin-top:10px"></div>';
+  document.getElementById('qaBody').innerHTML=h;
+  var btns=document.querySelectorAll('.qa-opt');
+  btns.forEach(function(b){b.onclick=function(){qaPickApproach(parseInt(b.dataset.i),b)}});
+ }catch(e){qaErr({error:'网络错误'})}
+}
+function qaPickApproach(i,btn){
+ var o=qaData.options[i];
+ var feed=document.getElementById('qaFeed');
+ document.querySelectorAll('.qa-opt').forEach(function(b){b.style.pointerEvents='none';b.style.opacity='.7'});
+ if(o.correct){
+  btn.style.borderColor='#16a34a';btn.style.background='#f0fdf4';
+  feed.innerHTML='<div style="color:#16a34a;font-weight:700">✅ 思路正确！</div>';
+  qaStep='followup';qaShowFollowup(qaData.followup);
+ }else{
+  qaAttempt++;
+  btn.style.borderColor='#dc2626';btn.style.background='#fef2f2';
+  var h='<div style="color:#dc2626;font-weight:700">❌ 这个思路有问题</div>';
+  if(qaCard.principle)h+='<div style="margin-top:8px;background:#fffbeb;border-left:3px solid #f59e0b;padding:10px;border-radius:0 8px 8px 0">💡 提示：'+esc(qaCard.principle)+'</div>';
+  if(qaAttempt>=2){
+   h+='<div style="margin-top:8px"><button onclick="qaShowAnswerKey()" style="background:#e5e7eb;color:#333;padding:10px 16px">看正确思路</button></div>';
+  }else{
+   h+='<div style="margin-top:8px;color:var(--mut)">再想想，重新选一次 👆</div>';
+   document.querySelectorAll('.qa-opt').forEach(function(b){b.style.pointerEvents='';b.style.opacity=''});
+  }
+  feed.innerHTML=h;
+ }
+}
+function qaShowAnswerKey(){
+ var ok=qaData.options.filter(function(o){return o.correct})[0];
+ document.getElementById('qaFeed').innerHTML='<div style="background:#f0fdf4;border-left:3px solid #16a34a;padding:10px;border-radius:0 8px 8px 0">✅ 正确思路：'+esc(ok.text)+'</div>';
+ qaStep='followup';qaShowFollowup(qaData.followup);
+}
+// --- 追问（通用）---
+function qaShowFollowup(fq){
+ if(!fq)return;
+ var h='<div style="margin-top:14px;border-top:1px solid var(--line);padding-top:12px">'+
+  '<div style="font-weight:700;margin-bottom:8px">🔍 追问：'+esc(fq)+'</div>'+
+  '<textarea id="qaFollowInput" placeholder="说说你的理解…" style="min-height:70px"></textarea>'+
+  '<div style="display:flex;gap:8px;margin-top:8px"><button id="qaFollowBtn" class="pri" style="flex:1">提交回答</button></div>'+
+  '<div id="qaFollowFeed" style="margin-top:8px"></div></div>';
+ document.getElementById('qaBody').insertAdjacentHTML('beforeend',h);
+ document.getElementById('qaFollowBtn').onclick=qaJudgeFollowup;
+}
+async function qaJudgeFollowup(){
+ var inp=document.getElementById('qaFollowInput');
+ var v=inp.value.trim();if(!v){alert('先写下你的回答');return}
+ var feed=document.getElementById('qaFollowFeed');
+ feed.innerHTML='<div style="color:var(--mut)">判分中…</div>';
+ try{
+  var j=await qaPost({action:'judge',question:qaData.followup||qaCard.question,expected:qaCard.answer,student:v});
+  if(j.error){feed.innerHTML='<div style="color:#dc2626">'+esc(j.error)+'</div>';return}
+  if(j.correct){
+   feed.innerHTML='<div style="color:#16a34a;font-weight:700">🎉 回答正确，概念清晰！</div>';
+  }else{
+   feed.innerHTML='<div style="color:#dc2626;font-weight:700">🤔 还差一点</div><div style="margin-top:6px"><button id="qaHintBtn2" style="background:#fef3c7;color:#92400e;padding:8px 14px">💡 要个提示</button></div><div id="qaHint2" style="margin-top:8px"></div>';
+   document.getElementById('qaHintBtn2').onclick=function(){qaFetchHint(v,'qaHint2')};
+  }
+ }catch(e){feed.innerHTML='<div style="color:#dc2626">网络错误</div>'}
+}
+// --- 科学：自由回答 ---
+function qaShowAnswer(){
+ var h='<div style="font-weight:700;margin-bottom:8px">请用自己的话回答：</div>'+
+  '<textarea id="qaInput" placeholder="写下你的答案…" style="min-height:90px"></textarea>'+
+  '<div style="display:flex;gap:8px;margin-top:8px"><button id="qaSubmit" class="pri" style="flex:1">提交</button>'+
+  '<button id="qaHintBtn" style="background:#fef3c7;color:#92400e">💡 提示</button></div>'+
+  '<div id="qaFeed" style="margin-top:10px"></div>';
+ document.getElementById('qaBody').innerHTML=h;
+ document.getElementById('qaSubmit').onclick=qaJudgeAnswer;
+ document.getElementById('qaHintBtn').onclick=function(){
+  var v=document.getElementById('qaInput').value.trim();
+  qaFetchHint(v,'qaFeed');
+ };
+}
+async function qaJudgeAnswer(){
+ var v=document.getElementById('qaInput').value.trim();
+ if(!v){alert('先写下你的答案');return}
+ var feed=document.getElementById('qaFeed');
+ feed.innerHTML='<div style="color:var(--mut)">判分中…</div>';
+ try{
+  var j=await qaPost({action:'judge',question:qaCard.question,expected:qaCard.answer,student:v});
+  if(j.error){feed.innerHTML='<div style="color:#dc2626">'+esc(j.error)+'</div>';return}
+  if(j.correct){
+   feed.innerHTML='<div style="color:#16a34a;font-weight:700">✅ 答对了！</div>';
+   qaStep='followup';
+   var fj=await qaPost({action:'followup',question:qaCard.question,answer:qaCard.answer,principle:qaCard.principle||'',subject:qaCard.subject});
+   qaData={followup:fj.followup||''};
+   qaShowFollowup(qaData.followup);
+  }else{
+   qaAttempt++;
+   var h='<div style="color:#dc2626;font-weight:700">❌ 不太对</div>';
+   if(qaCard.principle)h+='<div style="margin-top:8px;background:#fffbeb;border-left:3px solid #f59e0b;padding:10px;border-radius:0 8px 8px 0">💡 先想想：'+esc(qaCard.principle)+'</div>';
+   if(qaAttempt>=2)h+='<div style="margin-top:8px"><button onclick="qaReveal()" style="background:#e5e7eb;color:#333;padding:10px 16px">看答案</button></div>';
+   feed.innerHTML=h;
+  }
+ }catch(e){feed.innerHTML='<div style="color:#dc2626">网络错误</div>'}
+}
+async function qaFetchHint(student,targetId){
+ var el=document.getElementById(targetId);
+ el.innerHTML='<div style="color:var(--mut)">正在想提示…</div>';
+ try{
+  var j=await qaPost({action:'hint',question:qaCard.question,answer:qaCard.answer,principle:qaCard.principle||'',student:student,attempt:qaAttempt,subject:qaCard.subject});
+  if(j.error){el.innerHTML='<div style="color:#dc2626">'+esc(j.error)+'</div>';return}
+  el.innerHTML='<div style="background:#fffbeb;border-left:3px solid #f59e0b;padding:10px;border-radius:0 8px 8px 0">💡 '+esc(j.hint)+'</div>';
+ }catch(e){el.innerHTML='<div style="color:#dc2626">网络错误</div>'}
+}
+function qaReveal(){
+ document.getElementById('qaFeed').innerHTML='<div class="a">✅ '+esc(qaCard.answer)+'</div>'+(qaCard.principle?'<div class="meta">📌 '+esc(qaCard.principle)+'</div>':'');
+}
+document.getElementById('fcQA').onclick=openQA;
 /* ---------- 导出单文件闪卡 HTML ---------- */
 var XCSS='*{box-sizing:border-box}body{margin:0;background:#f4f6fa;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;padding:16px}'+
 'h1{font-size:20px;text-align:center}.fc{perspective:1200px;margin:20px auto;max-width:560px}.fci{position:relative;min-height:280px;transform-style:preserve-3d;transition:transform .45s;cursor:pointer}'+
