@@ -706,9 +706,20 @@ function todayStats(){
   allTotal:l.length
  };
 }
+var studyCat='';
 function renderStudy(){
  var due=dueCards(), st=todayStats();
- var ph='<div style="font-size:15px;margin-bottom:8px">今日待复习 <b>'+due.length+'</b> 张';
+ // 类别下拉
+ var subjects=[];
+ cards.forEach(function(c){var s=c.subject||'未分类';if(subjects.indexOf(s)<0)subjects.push(s)});
+ var ph='<div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap">'+
+  '<label style="font-size:14px;color:var(--mut)">类别</label>'+
+  '<select id="studyCatSel" style="flex:1;min-width:120px"><option value="">全部</option>'+
+  subjects.map(function(s){return '<option value="'+esc(s)+'"'+(studyCat===s?' selected':'')+'>'+esc(s)+'</option>'}).join('')+
+  '</select></div>';
+ // 按类别过滤
+ if(studyCat)due=due.filter(function(c){return (c.subject||'未分类')===studyCat});
+ ph+='<div style="font-size:15px;margin-bottom:8px">今日待复习 <b>'+due.length+'</b> 张';
  if(due.length)ph+=' <button id="studyStart" class="pri" style="padding:8px 16px;margin-left:8px">开始问答 →</button>';
  ph+='</div>';
  if(due.length){
@@ -719,6 +730,7 @@ function renderStudy(){
   ph+='<div style="color:#16a34a">🎉 今日复习全部完成！</div>';
  }
  document.getElementById('studyPlan').innerHTML=ph;
+ document.getElementById('studyCatSel').onchange=function(){studyCat=this.value;renderStudy()};
  var sb=document.getElementById('studyStart');
  if(sb)sb.onclick=function(){
   document.querySelector('nav button[data-t=tab-fc]').click();
