@@ -97,7 +97,7 @@ summary{cursor:pointer;color:var(--pri);font-weight:600;padding:8px 0}
   <section id="tab-add" class="hide">
     <div class="card">
       <label>学科</label>
-      <select id="fSubject"><option>上海数学</option><option>IGMath</option><option>Science</option><option>英语</option><option>物理</option><option>化学</option><option>其他</option></select>
+      <select id="fSubject"><option>上海数学</option><option>IGMath</option><option>Science</option><option>English Writing</option><option>英语</option><option>物理</option><option>化学</option><option>其他</option></select>
       <label>来源</label>
       <select id="fSrc"><option>igmath</option><option>中文数学</option></select>
       <label>标签（如：二次根式）</label><input id="fTag" placeholder="知识点标签">
@@ -581,6 +581,42 @@ var SEED=[
  answer:'x=-3',
  principle:'x^2+x-2=(x+2)(x-1)。两边同乘 (x+2)(x-1)：3-(x+2)=(x+2)(x-1)，化简得 x^2+2x-3=0，x=-3 或 x=1；x=1 是增根，舍去。',
  note:'通分后把右边的 1 弄丢了：右边乘公分母后是 (x+2)(x-1)，不是 1。等号两边每一项都要乘公分母。'},
+{id:'ew-01',src:'engwriting',subject:'English Writing',tag:'Subject-verb agreement',kind:'mistake',mastered:false,createdAt:1761520000000,
+ question:'Correct the sentences: (1) The two men fights over Hermia. (2) The couple Hermia and Lysander wants to be together.',
+ myAnswer:'fights / wants',
+ answer:'(1) The two men fight over Hermia. (2) The couple, Hermia and Lysander, want to be together.',
+ principle:'Plural subject takes the base verb (no -s). men is plural, so fight; a couple acting as two people takes want.',
+ note:'Same mistake twice in one paragraph: after a plural subject, drop the -s.'},
+{id:'ew-02',src:'engwriting',subject:'English Writing',tag:'Verb + preposition',kind:'mistake',mastered:false,createdAt:1761520000000,
+ question:'Correct the sentence: Egeus wants her to obey to him and marry Demetrius.',
+ myAnswer:'obey to him',
+ answer:'obey him',
+ principle:'obey is a transitive verb: obey + object directly, with no preposition.',
+ note:'Do not add to after obey. Contrast: obey him, but listen to him.'},
+{id:'ew-03',src:'engwriting',subject:'English Writing',tag:'Spelling / Capitalisation',kind:'mistake',mastered:false,createdAt:1761520000000,
+ question:'Correct the spelling and capitals: the mischievise fairy puck / How dramatic and Ironic / half-Donkey creature',
+ myAnswer:'mischievise / Ironic / Donkey',
+ answer:'the mischievous fairy Puck / ironic / half-donkey',
+ principle:'mischievous is spelled mis-chie-vous. Common nouns and adjectives mid-sentence stay lowercase; only names (Puck) take capitals.',
+ note:'Three spelling/capital slips in one paragraph. Always re-read once after finishing.'},
+{id:'ew-04',src:'engwriting',subject:'English Writing',tag:'Story accuracy',kind:'mistake',mastered:false,createdAt:1761520000000,
+ question:'Correct the sentence: the fairy kings and queen told Puck to end this complicated problem.',
+ myAnswer:'fairy kings and queen',
+ answer:'the fairy king and queen (Oberon and Titania)',
+ principle:'There is only one fairy king (Oberon) and one queen (Titania). Check names and numbers against the play.',
+ note:'kings is wrong: the fairy world has a single king. When summarising a story, names and numbers must match the original.'},
+{id:'ew-05',src:'engwriting',subject:'English Writing',tag:'Sentence structure',kind:'mistake',mastered:false,createdAt:1761520000000,
+ question:'Rewrite the sentence: This situation causes the two lovers to make a plan of running into the forest, while they told Helena.',
+ myAnswer:'a plan of running ... while they told Helena',
+ answer:'The two lovers make a plan to run away into the forest, and they tell Helena about it.',
+ principle:'plan is followed by to + verb (plan to do). while means at the same time; for the next event in sequence, use and.',
+ note:'Two problems: plan takes to do, not of doing; while is for simultaneous events, not for what happens next.'},
+{id:'ew-06',src:'engwriting',subject:'English Writing',tag:'Word formation',kind:'mistake',mastered:false,createdAt:1761520000000,
+ question:'Rewrite the sentence: Titania was suddenly in love with Donkey head Bottom!',
+ myAnswer:'Donkey head Bottom',
+ answer:'Titania suddenly fell in love with Bottom, who now had a donkey head (donkey-headed Bottom).',
+ principle:'Compound adjective before a noun takes -ed: donkey-headed Bottom. fall in love with is the natural collocation.',
+ note:'Donkey head as a modifier must become donkey-headed; was in love reads better as fell in love.'},
 ];
 var cards=load();
 (function(){
