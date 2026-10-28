@@ -617,13 +617,55 @@ var SEED=[
  answer:'Titania suddenly fell in love with Bottom, who now had a donkey head (donkey-headed Bottom).',
  principle:'Compound adjective before a noun takes -ed: donkey-headed Bottom. fall in love with is the natural collocation.',
  note:'Donkey head as a modifier must become donkey-headed; was in love reads better as fell in love.'},
+{id:'ig-27',src:'igmath',subject:'IGMath',tag:'Inequalities / Substitution Check',kind:'mistake',mastered:false,createdAt:1761700001000,
+ question:'IXL: Does the point (2,10) satisfy the inequality y > 2x + 6?',
+ myAnswer:'yes (guessed without substituting)',
+ answer:'No. Substitute x = 2, y = 10: 10 > 2(2) + 6 = 10 is false.',
+ principle:'Always substitute the point and compute both sides before answering yes or no. Never guess from how the numbers look.',
+ note:'10-23 session: 8 of 10 errors were no-answers that should have been yes, and the next day the direction flipped - the point was never actually substituted.'},
+{id:'ig-28',src:'igmath',subject:'IGMath',tag:'Inequalities / Strict vs Non-Strict',kind:'mistake',mastered:false,createdAt:1761700002000,
+ question:'IXL: Is (3,7) a solution to the inequality y > 2x + 1? Compare with: Is (3,8) a solution to y ≤ 2x + 2?',
+ myAnswer:'yes to the first one',
+ answer:'First: No - 7 > 2(3) + 1 = 7 is false. Second: Yes - 8 ≤ 2(3) + 2 = 8 is true.',
+ principle:'Strict inequalities (> and <) exclude the boundary value: 7 > 7 is false. Non-strict inequalities (≥ and ≤) include it: 8 ≤ 8 is true.',
+ note:'Both boundary cases were missed in the same week. When substitution gives equality, the symbol decides: strict means no, non-strict means yes.'},
+{id:'ig-29',src:'igmath',subject:'IGMath',tag:'Inequalities / Slope from Graph',kind:'mistake',mastered:false,createdAt:1761700003000,
+ question:'IXL: Write the inequality for a graph whose boundary line passes through (0,2) and (1,0), with shading above the line and a dashed boundary.',
+ myAnswer:'y > x + 2',
+ answer:'y > -2x + 2. Slope = rise/run = (0 - 2)/(1 - 0) = -2; the line crosses the y-axis at 2.',
+ principle:'Slope = vertical change divided by horizontal change. Never swap rise and run. The y-intercept is the point where the line crosses the y-axis.',
+ note:'Slope was inverted (wrote x instead of -2x). Read two points off the line, then compute rise over run.'},
+{id:'ig-30',src:'igmath',subject:'IGMath',tag:'Inequalities / Horizontal vs Vertical Lines',kind:'mistake',mastered:false,createdAt:1761700004000,
+ question:'IXL: Graph the inequality x ≥ 2.',
+ myAnswer:'Drew a horizontal line y = 2 with shading above it.',
+ answer:'Vertical line x = 2, solid, with shading to the right.',
+ principle:'x = constant is a VERTICAL line (all points with that x-value). y = constant is a HORIZONTAL line. x ≥ 2 means every point whose x-coordinate is 2 or more - the right side.',
+ note:'Horizontal and vertical were swapped in 4 of 8 graphing errors. Say the variable out loud: x means vertical, y means horizontal.'},
+{id:'ig-31',src:'igmath',subject:'IGMath',tag:'Inequalities / Solid vs Dotted and Shading',kind:'mistake',mastered:false,createdAt:1761700005000,
+ question:'IXL: Graph the inequality y < 3.',
+ myAnswer:'Drew a diagonal line through the origin with shading to the upper right.',
+ answer:'Dashed horizontal line y = 3, with shading below it.',
+ principle:'Three steps: (1) y = constant is horizontal. (2) Strict < or > gives a DASHED boundary; ≤ or ≥ gives SOLID. (3) Shade the side that satisfies the inequality: y < 3 is everything below the line.',
+ note:'The boundary type, the line direction and the shading side were all wrong at once. Do the three steps in order, never draw from feeling.'},
+{id:'ig-32',src:'igmath',subject:'IGMath',tag:'Inequalities / Shading Direction Test',kind:'mistake',mastered:false,createdAt:1761700006000,
+ question:'IXL: Graph the inequality x ≤ 1.',
+ myAnswer:'Drew the vertical line x = 1 correctly, but shaded the right side.',
+ answer:'Vertical line x = 1, solid, with shading to the LEFT. Test point (0,0): 0 ≤ 1 is true, so shade the side containing (0,0).',
+ principle:'After drawing the boundary, always test a point not on the line - (0,0) is easiest. If it satisfies the inequality, shade its side; if not, shade the other side.',
+ note:'The only graphing error where the boundary was right and only the shading was wrong. The test-point habit fixes this whole class.'},
+{id:'ig-33',src:'igmath',subject:'IGMath',tag:'Inequalities / Writing from Graph',kind:'mistake',mastered:false,createdAt:1761700007000,
+ question:'IXL: Write a linear inequality for a graph with a dashed boundary line of slope -4/3 crossing the y-axis at -1, with shading below the line.',
+ myAnswer:'y > x - 1',
+ answer:'y < -4/3 x - 1. Slope -4/3, intercept -1, shading below means <, and the dashed line confirms a strict inequality.',
+ principle:'Four pieces, in order: slope from two points, intercept from the y-axis crossing, direction (< vs >) from the shaded side, strict vs non-strict from dashed vs solid.',
+ note:'Synthesis error: slope wrong, direction reversed. This card is the checklist to run before writing the final answer.'},
 ];
 var cards=load();
 (function(){
  var i,c,k,mastered={},userCards=[];
  for(i=0;i<cards.length;i++){c=cards[i];if(!c||!c.id)continue;
   if(c.mastered)mastered[c.id]=1;
-  if(!/^(seed-|igs?-|cn-)/.test(c.id))userCards.push(c)}
+  if(!/^(seed-|igs?-|cn-|ew-)/.test(c.id))userCards.push(c)}
  var fresh=[];
  for(i=0;i<SEED.length;i++){var s=SEED[i],n={};
   for(k in s)n[k]=s[k];
