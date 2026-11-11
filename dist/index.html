@@ -97,7 +97,7 @@ summary{cursor:pointer;color:var(--pri);font-weight:600;padding:8px 0}
   <section id="tab-add" class="hide">
     <div class="card">
       <label>学科</label>
-      <select id="fSubject"><option>上海数学</option><option>IGMath</option><option>Science</option><option>English Writing</option><option>英语</option><option>物理</option><option>化学</option><option>其他</option></select>
+      <select id="fSubject"><option>上海数学</option><option>IGMath</option><option>Science</option><option>English Writing</option><option>语文</option><option>英语</option><option>物理</option><option>化学</option><option>其他</option></select>
       <label>来源</label>
       <select id="fSrc"><option>igmath</option><option>中文数学</option></select>
       <label>标签（如：二次根式）</label><input id="fTag" placeholder="知识点标签">
@@ -617,6 +617,54 @@ var SEED=[
  answer:'Titania suddenly fell in love with Bottom, who now had a donkey head (donkey-headed Bottom).',
  principle:'Compound adjective before a noun takes -ed: donkey-headed Bottom. fall in love with is the natural collocation.',
  note:'Donkey head as a modifier must become donkey-headed; was in love reads better as fell in love.'},
+{id:'yw-01',src:'chinese',subject:'语文',tag:'默写 / 同音字 竞 vs 竟',kind:'mistake',mastered:false,createdAt:1794404574000,
+ question:'默写：夕日欲颓，沉鳞竞跃。（陶弘景《答谢中书书》）',
+ myAnswer:'沉鳞竟跃',
+ answer:'沉鳞竞跃',
+ principle:'竞（竞争、争相）与竟（竟然、居然）同音不同义：鱼儿争相跳跃用“竞”，表示出乎意料才用“竟”。默写时先想意思再落笔，不要凭读音写字。',
+ note:'语文单元练习二（B）默写第3题，扣2分。本节只扣了这一空。'},
+{id:'yw-02',src:'chinese',subject:'语文',tag:'基础知识 / 字音辨析',kind:'mistake',mastered:false,createdAt:1794404574000,
+ question:'下列加点字的注音完全正确的一项是（ ）。A. 匿名（nì）绯红（fěi）彰显（zhāng）深恶痛疾（è） B. 诗赍（jié）不逊（xùn）宛如（wǎn）惨绝人寰（huán） C. 教诲（huì）纂改（zuǎn）呓语（yì）重岩叠嶂（zhàng） D. 嗤形（qì）遁形（dùn）辱没（méi）抑扬顿挫（cuò）',
+ myAnswer:'B',
+ answer:'C',
+ principle:'逐项排除：A“深恶痛疾”的“恶”读 wù（厌恶）；B“诗赍”的“赍”读 jí；D“嗤”读 chī。只有 C 组四个读音全对。',
+ note:'语文单元练习二（B）第5题，扣2分。易错点都在多音字和生僻字上。'},
+{id:'yw-03',src:'chinese',subject:'语文',tag:'基础知识 / 文学常识 鲁迅',kind:'mistake',mastered:false,createdAt:1794404574000,
+ question:'下列对于鲁迅的介绍不正确的是（ ）。A. 《藤野先生》选自鲁迅的杂文集《朝花夕拾》，回忆了他与先生交往的一段经历。B. 鲁迅弃医从文，后来以笔代戈战斗一生，被誉为“民族魂”。C. 在鲁迅的人生中，寿镜吾先生和藤野先生这两位恩师令他终生难忘。D. 在《藤野先生》中，鲁迅回忆了藤野先生为自己添改讲义、纠正解剖图等往事，表达了对这位没有民族偏见的老师的怀念与感激。',
+ myAnswer:'C（原先选 A 又改成 C，改错了）',
+ answer:'A',
+ principle:'《朝花夕拾》是散文集（原名《旧事重提》），不是杂文集；《藤野先生》是其中一篇回忆散文。记文学常识要记“篇名—出处—体裁”三件套。',
+ note:'语文单元练习二（B）第8题，扣2分。'},
+{id:'yw-04',src:'chinese',subject:'语文',tag:'文言文 / 虚词“其”的指代',kind:'mistake',mastered:false,createdAt:1794404574000,
+ question:'解释下列句中加点词：人问其故（加点词“其”）。（《王子猷夜访戴安道》，《世说新语》）',
+ myAnswer:'欣赏',
+ answer:'其：代词，指王子猷（他）。全句意思是：别人问他（为什么不进去）。',
+ principle:'“其”作代词时指代前面出现过的人或事，不表示心情、态度。解释虚词先看它在句中指代谁，再代入整句验证。顺带记：若加点的是“故”，则解释为“原因、缘故”。',
+ note:'语文单元练习二（B）第11题（2），扣2分。把代词当成心情词来解释了。'},
+{id:'yw-05',src:'chinese',subject:'语文',tag:'文言文 / 比较阅读 出行原因',kind:'mistake',mastered:false,createdAt:1794404574000,
+ question:'【甲】《记承天寺夜游》中“欣然起行”和【乙】《王子猷夜访戴安道》中“因起彷徨”意思相同，都说明出行是临时起意。但二人出行原因不尽相同：苏轼是因为“月色入户”，王子猷则除了月夜雪景外，还因为什么，才“造门不前而返”？',
+ myAnswer:'王子猷觉得烦闷才出门（大意）',
+ answer:'还因为忽忆戴安道——想念好友戴安道，想去看他。王子猷夜乘小船去找戴安道，到了门口却不进去就返回了。',
+ principle:'答“原因”要回到原文找直接依据：“忽忆戴安道”就是王子猷出行的原因。不要用自己的心情词（烦、闷）去猜古人的动机。“造门不前而返”是到了门口不进去就返回。',
+ note:'语文单元练习二（B）第14题，扣2分。“月色入户”那半答对了，后半答错。'},
+{id:'yw-06',src:'chinese',subject:'语文',tag:'现代文阅读 / 细节描写的作用',kind:'mistake',mastered:false,createdAt:1794404574000,
+ question:'《我们都是好孩子》第⑬段写出歌名《我们都是好孩子》和歌词，在全文中起到什么作用？',
+ myAnswer:'强调歌词的安慰作用，把“我”从悲伤中拉起来，体现尚文的关怀，放大“我”听到歌后的感动。',
+ answer:'内容上：歌词安慰了“我”，体现尚文的关怀，表达对青春友情的美好回忆；结构上：呼应标题《我们都是好孩子》，使文章首尾圆合。',
+ principle:'“在全文中起什么作用”要分两层答：内容作用（写了什么、表现了什么情感）＋结构作用（呼应标题、照应前文、收束全文）。只答一层会丢分。',
+ note:'语文单元练习二（B）第17题，得2/3分。内容层答到了，漏了结构层“呼应标题”。'},
+{id:'yw-07',src:'chinese',subject:'语文',tag:'非连续性文本 / 数据表述陷阱',kind:'mistake',mastered:false,createdAt:1794404574000,
+ question:'下列对“保护生物多样性”四则材料的理解，正确的一项是（ ）。A. 从材料一可知，全球的生物物种数量和种下单元数量近年来呈增长趋势。B. 生物多样性是人类生存的基本保障。近年来，我国正加快完善生物多样性保护政策法规。C. 目前，我国野生川金丝猴种群与2002年相比增加了2.5万只，受威胁程度由易危降级为近危。D. 生物多样性价值巨大，全球绝大部分人口的生计依赖海洋和沿海的生物多样性。',
+ myAnswer:'C',
+ answer:'B',
+ principle:'核对数据题要逐字比对三个点：范围（材料一是中国数据，不是全球）；数量（川金丝猴是从1.4万只“增加到”约2.5万只，不是“增加了”2.5万只）；程度词（全球“近40%”人口，不是“绝大部分”）。',
+ note:'语文单元练习二（B）第19题，扣3分。三个错误选项各埋了一个表述陷阱。'},
+{id:'yw-08',src:'chinese',subject:'语文',tag:'非连续性文本 / 观点论证',kind:'mistake',mastered:false,createdAt:1794404574000,
+ question:'读完材料二，小妍认为既然野生川金丝猴物种受威胁程度“降级”了，那么保护工作可以取消，你同意这种说法吗？请根据材料三，说说理由。',
+ myAnswer:'不同意，因为不能保证近危不会重新掉到易危甚至更糟；要保护到彻底排除危险、成为无危物种才算安全。',
+ answer:'不同意。材料三指出栖息地被破坏、人类过度采伐、外来物种入侵、全球气候变化仍在威胁生物多样性；“降级”只是受威胁程度降低，不等于没有威胁，保护工作不能取消。',
+ principle:'“根据材料，说说理由”的题，理由必须来自指定材料的具体信息（材料三的四种威胁），不能只讲自己的道理。观点＋材料原信息，才算完整论证。',
+ note:'语文单元练习二（B）第20题，得3/4分。观点对了，但理由没引用材料三的具体威胁。'},
 {id:'ig-27',src:'igmath',subject:'IGMath',tag:'Inequalities / Substitution Check',kind:'mistake',mastered:false,createdAt:1761700001000,
  question:'IXL: Does the point (2,10) satisfy the inequality y > 2x + 6?',
  myAnswer:'yes (guessed without substituting)',
@@ -665,7 +713,7 @@ var cards=load();
  var i,c,k,mastered={},userCards=[];
  for(i=0;i<cards.length;i++){c=cards[i];if(!c||!c.id)continue;
   if(c.mastered)mastered[c.id]=1;
-  if(!/^(seed-|igs?-|cn-|ew-)/.test(c.id))userCards.push(c)}
+  if(!/^(seed-|igs?-|cn-|ew-|yw-)/.test(c.id))userCards.push(c)}
  var fresh=[];
  for(i=0;i<SEED.length;i++){var s=SEED[i],n={};
   for(k in s)n[k]=s[k];
